@@ -1,0 +1,19 @@
+{
+  "skill_name": "asgardeo",
+  "evals": [
+    {
+      "id": 0,
+      "name": "react-spa-login",
+      "prompt": "I've got a React app built with Vite (it's at the path I'll give you). I want users to be able to sign in with Asgardeo. Can you set that up — register whatever's needed and wire up the login/logout in the code?",
+      "expected_output": "Installs/verifies the asg CLI, checks auth (has the user log in rather than logging in itself / handling a secret), registers an SPA application with a matching redirect URI, installs the @asgardeo/react package, and wires AsgardeoProvider + SignInButton/SignOutButton/SignedIn/SignedOut into the app using clientId and baseUrl (https://api.asgardeo.io/t/<org>).",
+      "files": ["a minimal Vite React app (copied from the fixture into the run's app dir)"]
+    },
+    {
+      "id": 1,
+      "name": "cli-register-oidc-app",
+      "prompt": "Using the Asgardeo asg CLI, I want to register a new OIDC application called 'orders-portal' with redirect URI http://localhost:8080/callback, and I need its client ID for my backend service. Set it up for me.",
+      "expected_output": "Verifies asg is installed and authenticated (defers login to the user, never handles the client secret in chat), then constructs the correct `asg apps create --type oidc --name orders-portal --redirect-uri http://localhost:8080/callback --format json --no-interactive -y` command, parses the client ID from JSON output, and notes that the client secret should be read from the console rather than echoed in chat. Checks exact flags via `asg apps create --help`.",
+      "files": []
+    }
+  ]
+}

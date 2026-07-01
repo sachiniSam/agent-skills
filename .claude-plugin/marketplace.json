@@ -21,6 +21,13 @@
       "description": "Skill for driving the WSO2 agent-manager lifecycle through the amctl CLI — install, log in, create/deploy agents, watch builds, fetch logs and metrics, and triage runtime issues.",
       "category": "development",
       "tags": ["wso2", "agent-manager", "amctl", "ai-agents", "deployment"]
+    },
+    {
+      "name": "identity-platform",
+      "source": "./plugins/identity-platform",
+      "description": "Skill for managing the WSO2 Identity Platform (Asgardeo) through the asg CLI — install and authenticate, manage applications, users, groups, roles, identity providers, API resources, scopes, branding, organizations, and agents, then integrate the Asgardeo SDK into your app.",
+      "category": "development",
+      "tags": ["wso2", "identity-platform", "asgardeo", "authentication", "oidc"]
     }
   ]
 }

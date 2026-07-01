@@ -9,6 +9,11 @@
       "title": "Agent Manager",
       "description": "Skills for building, deploying, and operating AI agents.",
       "skills": ["manage-agent"]
+    },
+    {
+      "title": "Identity Platform",
+      "description": "Skill for managing Asgardeo identity resources and adding authentication to your apps.",
+      "skills": ["asgardeo"]
     }
   ]
 }
