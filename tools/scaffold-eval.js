@@ -102,6 +102,10 @@ for (let i = 0; i < argv.length; i++) {
 const [plugin, skill] = positional;
 const USAGE = `usage: node tools/scaffold-eval.js <plugin> <skill> [--providers ${PROVIDER_KEYS.join('|')}[,...]] [--grader ${PROVIDER_KEYS.join('|')}] [--model <id>] [--force]`;
 if (!plugin || !skill) fail(USAGE);
+// plugin/skill become path segments below — keep them to plain directory names.
+if (!/^[\w-]+$/.test(plugin) || !/^[\w-]+$/.test(skill)) {
+  fail('plugin and skill must contain only letters, digits, dashes, or underscores');
+}
 
 // Parse the comma-separated provider list: trim, drop blanks, dedupe, keep order.
 const selected = [...new Set(

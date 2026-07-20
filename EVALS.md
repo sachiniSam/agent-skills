@@ -10,7 +10,7 @@ tool here: we ship eval configs and fixtures, contributors run promptfoo locally
 
 Each skill carries its own suite as a sibling of `SKILL.md`:
 
-```
+```text
 plugins/<plugin>/skills/<skill>/
   SKILL.md  references/  scripts/  assets/
   evals/

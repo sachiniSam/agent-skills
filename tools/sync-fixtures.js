@@ -27,7 +27,9 @@ function fail(msg) {
 function syncSkill(plugin, skill) {
   const skillDir = path.join(REPO_ROOT, 'plugins', plugin, 'skills', skill);
   if (!fs.existsSync(path.join(skillDir, 'SKILL.md'))) {
-    fail(`no SKILL.md at plugins/${plugin}/skills/${skill}`);
+    // Warn and skip rather than fail() so a bad entry doesn't abort a --all run.
+    console.warn(`  (skip) ${plugin}/${skill}: no SKILL.md at plugins/${plugin}/skills/${skill}`);
+    return 0;
   }
   const wsRoot = path.join(skillDir, 'evals', 'fixtures', 'workspace');
   const layouts = [
@@ -84,6 +86,10 @@ if (argv[0] === '--all') {
   const [plugin, skill] = argv;
   if (!plugin || !skill) {
     fail('usage: node tools/sync-fixtures.js <plugin> <skill>   |   --all');
+  }
+  // plugin/skill become path segments below — keep them to plain directory names.
+  if (!/^[\w-]+$/.test(plugin) || !/^[\w-]+$/.test(skill)) {
+    fail('plugin and skill must contain only letters, digits, dashes, or underscores');
   }
   console.log(`${plugin}/${skill}:`);
   syncSkill(plugin, skill);

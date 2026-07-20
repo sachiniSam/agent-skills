@@ -107,7 +107,7 @@ Each skill carries a promptfoo eval suite under `evals/` that runs the skill the
 way it actually runs in production (the agent SDK discovers it from a fixture
 workspace) and asserts on both **triggering** and **task quality**. Scaffold one:
 
-```
+```bash
 node tools/scaffold-eval.js <plugin-name> <skill-name>
 ```
 
