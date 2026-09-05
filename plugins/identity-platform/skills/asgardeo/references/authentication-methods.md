@@ -15,7 +15,7 @@ There are two layers, and they sit on different sides of the CLI boundary:
 
 | Task | CLI? | How |
 |------|------|-----|
-| Edit an app's login flow / authentication sequence | **Yes** | `asg apps update --file` (export → edit JSON → re-import) or `--edit <path>:<value>` (`-e`) |
+| Edit an app's login flow / authentication sequence | **Yes** | `asg apps update --file` (interactive export → edit → re-import; with `-N` imports a prepared file) or `--edit <path>=<value>` (`-e`) |
 | Add a built-in factor to a flow (password, TOTP, Email OTP, SMS OTP) | **Yes** | edit the app's authentication sequence (no connection needed for system authenticators) |
 | List existing connections to reference in a flow | **Yes** | `asg idps list` / `asg idps view` to get the IdP name/ID |
 | **Create** a new connection / IdP (social, enterprise, passkey provider, etc.) | **No — Console** | `asg idps` is read-only (list/view/delete). Create it in the Console, then reference it |
@@ -26,20 +26,51 @@ There are two layers, and they sit on different sides of the CLI boundary:
 
 ## Editing an app's login flow with the CLI
 
-Don't guess the JSON schema — **export the real config, edit it, re-import.** The authentication sequence
-lives in the application object.
+Don't guess the JSON schema — **read the real sequence, edit it, patch it back.** The
+agent-runnable recipe (verified end-to-end):
 
 ```bash
-# 1. See the current config (find the authenticationSequence block)
-asg apps view --name "<app>" --format json
+# 1. Read the current authenticationSequence from the app object
+asg apps view --name "<app>" --format json -N > app.json     # stdout is pure JSON
 
-# 2. Export to a file, edit the authenticationSequence (add steps/options), then confirm to apply
-asg apps update --name "<app>" --file app.json
-#    (the CLI exports the app to app.json, you edit it in an external editor, then confirm in the terminal)
+# 2. Write the modified sequence to its own file, e.g. seq.json —
+#    take .authenticationSequence from app.json, add/change steps/options
+#    (set "type": "USER_DEFINED" when you change the flow)
 
-# For a single simple field, --edit (-e) avoids the round-trip (path:value, dot-separated path):
-asg apps update --name "<app>" --edit protocol.callbackUrl:http://localhost:3000/callback
+# 3. Patch just that attribute back onto the app
+asg apps update --name "<app>" --edit "authenticationSequence=@seq.json" -N -y
+
+# 4. Verify
+asg apps view --name "<app>" --format json -N   # check the steps took
 ```
+
+Example `seq.json` adding TOTP as a second factor:
+
+```json
+{
+  "type": "USER_DEFINED",
+  "steps": [
+    {"id": 1, "options": [{"idp": "LOCAL", "authenticator": "BasicAuthenticator"}]},
+    {"id": 2, "options": [{"idp": "LOCAL", "authenticator": "totp"}]}
+  ],
+  "subjectStepId": 1,
+  "attributeStepId": 1
+}
+```
+
+Notes:
+- **Use the authenticator names the app object returns**, not the ones the create API accepts —
+  password is `BasicAuthenticator` in a stored sequence, though `basic` is accepted at creation
+  time. Copying step 1's export is the reliable way to get them right.
+- `--edit` also handles a single scalar field without a file: `--edit description="New description" -N -y`.
+- **`--edit` only reaches the application object.** Protocol settings — callback URLs, grant types,
+  access token type — live in a separate resource with its own command, `asg apps protocol update`
+  (see `cli-overview.md`). `apps update --edit protocol.…` returns a generic 400.
+- **`apps update --file` is a different beast for applications** — it round-trips the server's
+  *export* format (a legacy service-provider schema where the flow lives under
+  `localAndOutBoundAuthenticationConfig`), not the `apps view` JSON. Use it for whole-app
+  backup/restore, not for flow editing; the `--edit … =@seq.json` patch above is the flow-editing
+  path.
 
 To add a **federated/social** step, the connection must already exist (create it in the Console), then
 reference it by name/ID — get that from `asg idps list` — inside the exported sequence. To add a

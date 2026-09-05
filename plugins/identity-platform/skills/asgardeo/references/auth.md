@@ -1,81 +1,68 @@
 # Authenticating the `asg` CLI
 
-The CLI must be authenticated before any management command works. Authentication is the one place a secret can appear, so the rule is simple: **the user runs `asg login` in their own terminal; the agent never handles credentials.**
+One rule governs everything here: **the user logs in; the agent verifies.** The agent never runs
+`asg login` and never handles a credential — no secrets in chat, in commands, or in files.
 
-## Why the user runs login
-
-`asg login` is interactive and, in machine mode, asks for a client secret. The agent's shell cannot see what the user types into an interactive prompt, and a secret must never be pasted into chat or embedded in a command the agent runs. So the agent's job is to *tell the user what to run* and then *verify the result* with `asg status` — not to run `asg login` itself.
-
-## Check status first
-
-Before asking the user to log in, check whether a session already exists:
+## 1. Check for a session
 
 ```bash
 asg status
 ```
 
-- If it reports an authenticated session, skip login and continue.
-- If it reports no session (or errors), ask the user to log in.
+Authenticated → done, skip the rest. No session (or an error) → step 2.
 
-## The two login modes
+## 2. The user logs in
 
-Tell the user to run `asg login` and pick the mode that fits:
-
-**Login as User** (interactive, browser-based — preferred for humans)
-1. Run `asg login` and select **Login as User**.
-2. Enter the root organization name.
-3. Press Enter to open the browser auth page (or copy the link shown), then enter the code displayed in the terminal.
-4. Confirm the code, continue, and sign in with Asgardeo credentials in the browser.
-
-**Login as Machine** (machine-to-machine — for automation / CI, or when user login is unavailable)
-
-Requires a pre-created M2M application in Asgardeo with the right authorization scopes
-([apps guide](https://wso2.com/identity-platform/docs/guides/applications/),
-[API authorization](https://wso2.com/identity-platform/docs/apis/)). Then:
-1. Run `asg login` and select **Login as Machine**.
-2. Enter the organization name, client ID, and client secret.
-
-Or as a single non-interactive command the **user** runs themselves (never the agent — it carries the secret):
+Ask the user to run, in their own terminal:
 
 ```bash
-asg login --org-name <org> --client-id <client-id> --client-secret <secret> --no-interactive
+asg login
 ```
 
-## After login
+and choose **Login as User**. What they'll see: the CLI asks for their **root organization name**,
+then opens the browser at the sign-in page with the device code pre-filled; they sign in with their
+Asgardeo credentials and the terminal completes on its own. (If no browser can open — SSH, headless —
+the CLI prints the URL and code to use from any device, and keeps waiting.)
 
-The agent re-verifies and continues:
+**If login stops with "CLI access is turned off for this organization"**, nothing about the command
+is wrong: CLI access is on by default only for organizations created after CLI support shipped, and
+an older one has to turn it on once in the Asgardeo Console, on the CLI tab. The CLI detects this
+before opening a browser and prints the steps. The user enables it and re-runs `asg login` —
+don't re-run it for them, and don't try another org name or server URL, which will not help.
+
+Two special cases:
+
+- **Self-hosted WSO2 Identity Server:** add `--server identity-server --identity-server-url <url>`
+  (org is typically `carbon.super`).
+- **CI / no human available:** machine login with a pre-created M2M app authorized for the needed
+  management APIs — run by the user or CI, never the agent, because the secret rides in the command
+  line:
+  ```bash
+  asg login --org-name <org> --client-id <id> --client-secret <secret> --no-interactive
+  ```
+
+## 3. Verify and continue
 
 ```bash
 asg status
 ```
 
-To sign out:
+Confirm it shows the expected organization, then proceed. Don't continue past a failed check.
+
+## Sessions renew themselves
+
+Access tokens expire hourly, but the CLI refreshes them silently — a session stays usable across a
+long task with no re-login. Two consequences:
+
+- A **"session has expired" error** means the silent refresh itself failed (refresh token expired or
+  revoked): ask the user to run `asg login` again.
+- A **403 is never a session problem** — it's a missing permission on the signed-in user's role, and
+  re-login won't change it. See "When a command fails" in `cli-overview.md` instead of looping on login.
+
+## Signing out
 
 ```bash
 asg logout
 ```
 
-## Management-scope prerequisite (read this before managing roles/APIs/orgs)
-
-Being authenticated is necessary but **not sufficient**. Each management operation requires the logged-in
-account (or, for machine login, the linked app) to carry the matching management scope — the
-`internal_*_mgt` scopes, e.g. `internal_role_mgt_view`, `internal_application_mgt_create`,
-`internal_api_resource_mgt_update`. Without the right scope, the command fails with a clean JSON 403
-("operation is not permitted"), and **re-login won't fix it** — it's an authorization gap, not a session
-problem.
-
-- For a **user login**, the signed-in user needs an admin role that grants those management permissions.
-- For a **machine (m2m) login**, the linked application must be authorized for the relevant management API.
-
-If a management command 403s, don't loop on re-login — see the 403 diagnosis and "inspect the granted
-scopes" steps in `troubleshooting.md`, then have an admin grant the missing scope and log in again.
-
-## Server target
-
-`asg login` defaults to `--server asgardeo`. For a self-hosted WSO2 Identity Server, the user adds `--server identity-server --identity-server-url <url>` (and typically `--org-name carbon.super`). Ask which one they're targeting only if it isn't already clear.
-
-## Credential safety checklist
-
-- Never run `asg login` on the user's behalf.
-- Never accept a client secret, password, or token in chat. If the user pastes one, do not echo it back, do not put it in any command, and do not store it.
-- It is fine for the agent to run read/verify commands (`asg status`) and, after login, any management command — those read the session the CLI already stored.
+Clears the stored tokens (including the refresh token).
