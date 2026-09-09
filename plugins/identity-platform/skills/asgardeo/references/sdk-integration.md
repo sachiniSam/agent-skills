@@ -8,7 +8,10 @@ knowledge the quickstarts don't cover.
 
 - **`clientId`** — in the `asg apps create` output (`Client ID:` line, or the payload with
   `--format json`); re-fetch anytime with `asg apps view --name "<app>" --format json -N`.
-- **`baseUrl`** — `https://api.asgardeo.io/t/<org-name>`, org as shown by `asg status`.
+- **`baseUrl`** — the `Base URL` line from `asg status`, copied verbatim (it looks like
+  `https://<host>/t/<org-name>`). Never assemble it from a remembered host: production, dev and
+  self-hosted deployments each have their own, and a base URL already in the project is the answer,
+  not a mistake to fix.
 - **client secret** (`oidc` apps only) — the user reads it from the Console (`asg apps settings`);
   it never passes through chat.
 - The SDK's redirect/callback URL must be a **registered redirect URI** on the app
@@ -43,6 +46,23 @@ Then:
 
 **Framework not listed:** browse `get-started/try-samples/` for the current link — don't guess
 deep URLs.
+
+## Auth state has three states, not two
+
+Between the redirect back from Asgardeo and the SDK finishing the code exchange, the user is
+authenticated but the SDK does not know it yet — `isSignedIn` is honestly `false`. A UI written with
+only a signed-in and a signed-out branch shows the sign-in prompt to someone who just signed in,
+then flips. It looks like a bug and gets reported as one.
+
+**Never render a signed-out branch while the SDK is still resolving the session.**
+
+- **React and Vue** — use the `<Loading>` control component alongside `<SignedIn>`/`<SignedOut>`, or
+  branch on `isLoading` / `isInitialized` from `useAsgardeo()`. The quickstart's basic example shows
+  only two states; add the third.
+- **Vanilla JS (`auth-spa`)** — the exchange is the `signIn()` call you make on the redirect page;
+  keep the signed-out UI hidden until it resolves.
+- **Next.js** — the session resolves on the server, so this does not arise the same way. Don't add a
+  client loading branch unless you actually observe the flash.
 
 ## Calling a protected API
 

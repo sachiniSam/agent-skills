@@ -19,6 +19,14 @@ App and API IDs come from the `create` calls that made them (or `asg apps view -
 
 ## 1. Register the API resource and its scopes
 
+**Agree the scopes in a table first.** They are the vocabulary everything downstream is built from,
+and a scope named wrong is expensive to change once roles and code reference it:
+
+| Scope | Lets someone |
+|---|---|
+| `read:orders` | See orders |
+| `write:orders` | Create and modify orders, including cancelling |
+
 ```bash
 asg apis create \
   --name "Orders API" \
@@ -68,6 +76,14 @@ asg roles create --name "Orders Admin" \
 
 - `-p`/`--permission-name` is repeatable; the values **are** the scope names from step 1 — which is
   why steps 1–2 come first.
+
+**Show the roles against the scopes**, in the same shape as the table in step 1, so the user can see
+which role grants what without reading the commands back:
+
+| Role | Scopes | Who gets it |
+|---|---|---|
+| Orders Viewer | `read:orders` | Everyone in support |
+| Orders Admin | `read:orders`, `write:orders` | Supervisors |
 - The create output includes the new role's `id`.
 
 ```bash
@@ -125,15 +141,18 @@ the token and checks that claim. A worked Express example (`npm install jose`):
 ```js
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const ORG = '<org-name>';
-const JWKS = createRemoteJWKSet(new URL(`https://api.asgardeo.io/t/${ORG}/oauth2/jwks`));
+// The Base URL from `asg status`, verbatim — https://<host>/t/<org>. Read it from the
+// environment rather than hardcoding a host: production, dev and self-hosted differ, and
+// the wrong one fails every token with nothing useful in the error.
+const BASE_URL = process.env.ASGARDEO_BASE_URL;
+const JWKS = createRemoteJWKSet(new URL(`${BASE_URL}/oauth2/jwks`));
 
 async function requireAuth(req, res, next) {
   const token = req.headers.authorization?.replace(/^Bearer /, '');
   if (!token) return res.status(401).json({ error: 'missing token' });
   try {
     const { payload } = await jwtVerify(token, JWKS, {
-      issuer: `https://api.asgardeo.io/t/${ORG}/oauth2/token`,
+      issuer: `${BASE_URL}/oauth2/token`,
     });
     // aud is the client ID, so azp/client_id is the check that matters
     if (payload.azp !== process.env.CLIENT_ID) throw new Error('wrong client');

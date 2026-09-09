@@ -24,7 +24,25 @@ You manage Asgardeo end-to-end through the `asg` CLI — registering and authent
 Users arrive with one intent — "let people log in", "lock this down by role", "add a user", "why the 403". Route them to the right track fast; don't march them through phases. Prefer `asg <cmd> --help` over guessing flags (the CLI self-documents); the official docs at https://wso2.com/identity-platform/docs are the fallback when the CLI or SDK surface is ambiguous.
 
 **How to work:**
-- **Lead with a plan — once the gate has passed.** With the CLI installed and a session live, say in a few lines what you'll do and what the user ends up with — e.g. *"I'll register an SPA app in Asgardeo, wire the React SDK for login/logout, create a test user, and you'll try signing in."* Then start. While the user still has to log in, hold the plan back: see the Gate.
+- **Settle the questions first, then plan.** Questions come *before* the plan, never alongside it. A plan that names resources the user hasn't chosen is a decision dressed up as a proposal, and it puts them in the position of correcting you rather than deciding. So: ask everything you need (below), wait, then write the plan using their answers.
+- **Then plan, and wait for approval.** Give the plan under three headings: **What I'll create**, **What changes in your code** (the files), **How you'll know it worked** (the check the user will run). Set out *What I'll create* as **one small table per kind of resource**, with only the columns that belong to that kind — never one wide table with blanks where a column doesn't apply. The user is checking these values, so each has to be findable at a glance. Same shape as the scope and role tables in Track B. For example:
+
+  **Application**
+
+  | Type | Name | Redirect URI | Access token |
+  |---|---|---|---|
+  | `spa` | orders-web | `http://localhost:5173` | Opaque (default) |
+
+  **Test user**
+
+  | Email (username) | Name |
+  |---|---|
+  | dev.tester@example.com | Dev Tester |
+
+  One resource with two or three settings doesn't need a table — a line is clearer. Reach for one when there are several values to check, or more than one of a kind. The plan lists **what will exist**, not values that only come into being when you create it: a generated password, a client ID, a resource ID all belong in the summary afterwards, not here.
+
+  Then **end the turn and wait** — approve it as a question (below), and create nothing until they answer. A plan the user never agreed to is just a warning shot before you change their org. While the user still has to log in, hold the plan back: see the Gate.
+- **Ask through the harness's question UI, everywhere it exists.** Where a structured question tool is available (`AskUserQuestion` in Claude Code), every question goes through it — an app or agent name, a role name, a redirect URI, which scenario applies, approving the plan — not just the ones a track calls out. Ask related questions together in one call rather than one per turn, and rely on the tool's free-text option for "something else". Where no such tool exists, ask the same questions in prose, in one message. Either way the rule is unchanged: **end the turn and wait**. Don't route anything through it that isn't a question.
 - **Close with what's next.** Never dead-end. Pre-empt blockers (a fresh org has no one to log in as — offer a test user *before* the login test) and offer the natural follow-up (login works → gate features by role).
 - **Show the user what you changed.** When you create or modify a resource, include its Console link in the summary (`https://console.asgardeo.io/t/<org>/app/<resource>/<id>` — see `cli-overview.md`) so they can inspect or adjust it themselves. Essential when a step is Console-only: link straight to the screen.
 - **✓ / ✗ every step**; on failure, diagnose (Track D) before trying something else.
@@ -78,13 +96,16 @@ Real sessions chain tracks (authenticate → authorize). Finish one, re-route.
 Goal: an app registered in Asgardeo and its SDK wired so users can log in.
 
 1. **Identify the framework** — inspect the project or ask. Framework decides the app type: `spa` (browser SPAs), `oidc` (server-rendered/confidential), `mobile`.
-2. **Settle the name and redirect URI** — both go on the app and neither is yours to pick alone:
-   - **Name** — this is what the user sees in the Console for the life of the org, and it's how their teammates will recognise it. Propose one from the project (repo or package name), ask, and **end the turn** — *"I'll register it as **Orders** — different name?"* — then create only after they reply. Proposing and carrying on in the same turn is deciding for them. Never create silently under a name you invented, and never use a placeholder like `my-app` or `test-app`.
-   - **Redirect URI** — the SDK's sign-in redirect must be registered on the app; confirm the dev URL before creating.
+2. **Settle the name and redirect URI first** — both go on the app, neither is yours to pick alone, and the plan can't be written until they're known:
+   - **Name** — this is what the user sees in the Console for the life of the org, and it's how their teammates will recognise it. Propose one from the project (repo or package name) and ask it as a question (see **How to work**), then create only after they reply. Proposing and carrying on in the same turn is deciding for them. Never create silently under a name you invented, and never use a placeholder like `my-app` or `test-app`.
+   - **Redirect URI** — the SDK's sign-in redirect must be registered on the app; confirm the dev URL before creating. Ask whether there's a deployed URL too and register both at once: `apps protocol update --edit 'callbackURLs=[…]'` replaces the whole array, so adding production later means restating the dev URL in the same command or silently losing it.
 3. **Register the app** — `asg apps create --name "<name>" --type <spa|oidc|mobile> --redirect-uri <url> -N -y`. The output includes the new app's **ID and Client ID** — capture them. For `oidc` apps the user reads the client secret from the Console (`asg apps settings`); secrets never pass through chat.
+   - **Add `--access-token-type jwt` only if a backend will read these tokens.** Login itself never inspects the access token, so the opaque default is right for a login-only app — and opaque tokens are revocable, which JWTs aren't. But if the user has said they want to protect an API, create it as JWT now: Track B step 5 is the same setting applied later, and discovering it late looks like "roles aren't working" rather than a token-format problem. **When the repo has a backend that doesn't check tokens yet — an API the project clearly intends to protect but hasn't — that's borderline: ask, don't decide.** Say what each choice costs (opaque stays revocable; JWT saves a confusing failure later) and let them pick.
+   - The CLI derives **allowed origins** from the redirect URIs. If login later fails on CORS at the token exchange rather than on the redirect, check `allowedOrigins` in `asg apps protocol view` — not just `callbackURLs`.
+   - **`baseUrl` comes from the server, not the app.** `asg status` prints it as `Base URL` — copy that verbatim; the SDK config needs it and so do Console links. Never assemble it from a host you remember: production, dev and self-hosted deployments differ, and pointing the SDK at the wrong one breaks every token while looking like a tidy-up.
 4. **Wire the SDK** — `references/sdk-integration.md` routes to the framework's docs quickstart; wire the provider + login/logout with `clientId` and `baseUrl`. (It also covers calling a protected API and reading roles, needed later in Track B.)
 5. **More than username/password?** Social, enterprise, MFA, passwordless → `references/authentication-methods.md`. Be explicit about which parts are CLI-editable and which are Console.
-6. **Someone to log in as** — a fresh org has no users. Offer to create a test user (`asg users create`) *before* the login test.
+6. **Someone to log in as** — a fresh org has no users. Offer to create a test user *before* the login test. Create it yourself; don't hand the user a command to run. The account needs a working password immediately, and `asg users create` only sets one with `--password <value> --set-password` — without that flag Asgardeo emails the person to set their own, which never arrives for a test address. So generate a strong password, pass it, and report it **once, in the summary afterwards** so they can sign in. It is a throwaway test credential, not one of the user's own secrets — unlike a client or agent secret, which never passes through chat at all.
 7. **Verify** — the user runs the app and signs in with that user. First suspect on failure: redirect-URI mismatch (Track D).
 8. **Offer what's next** — typically role-gating (Track B).
 
@@ -100,6 +121,8 @@ Asgardeo authorization is **role-based access control over API scopes**: scopes 
 4. **Create roles** whose permissions are the scope names from step 1 (`asg roles create -p <scope>`), and **assign** them — to users directly, or to a group when more than one person holds the role.
 5. **Switch the app to JWT access tokens** (`asg apps protocol update --edit "accessToken.type=JWT"`). Asgardeo issues **opaque** tokens by default, which a backend cannot decode or read scopes from — this blocks step 6 and is easy to miss. Creating the app with `--access-token-type jwt` avoids it entirely.
 6. **Enforce in the app** — request the scopes at login; validate the token and check its `scope` claim (worked Express example in `authorize-app.md`). To branch on role *names* instead, request the roles claim (`asg apps claims --add`) — reading it correctly is covered in `references/sdk-integration.md`.
+
+**Show scopes and roles as tables, not prose.** Before creating them, put the scopes in a table — scope name, and what it lets someone do. After step 4, show the roles the same way, each with the scopes it carries, so the reader can see which role grants what at a glance. These are the two things the user has to check are right, and a sentence listing them hides the mapping.
 
 Say plainly when a step is Console-only. And remind the user: **a newly assigned role or scope appears only after that user logs in again.**
 
@@ -143,7 +166,7 @@ the choice changes what you wire up. Put them to the user first —
 2. **On behalf of a user** — it borrows a specific person's permissions, with their consent
    (in the browser when they're signing in, or by CIBA when they're away)
 
-— in the same message as the proposed agent **name** and the **role name and scopes** (read the API to know them), then **end the turn and wait**; nothing is created until they answer. When they have, **lead with the plan** exactly as in Tracks A and B — what gets created, which files change, how it will be verified — then start. Most assistant-style agents are the second. The setup is shared to begin
+— together with the proposed agent **name** and the **role name and scopes** (read the API to know them). Ask all three at once (see **How to work**); nothing is created until they answer. When they have, **lead with the plan** exactly as in Tracks A and B — what gets created, which files change, how it will be verified — then wait for approval before creating anything. Most assistant-style agents are the second. The setup is shared to begin
 with: the agreed **name**, then create it with `asg agents create --allow-user-login` (which also
 creates the client it signs in through — the normal practice, don't ask), and give it a role. Only
 the token flow differs, and the reference has a section for each.
@@ -169,5 +192,5 @@ as Track A does with "try signing in". Don't call their API yourself.
 
 - Command pattern: `asg <resource> <action> [flags]` — `--help` at every level
 - Unattended: `-N -y`; parseable: `--format json` (stdout is then pure data)
-- Base URL for SDKs: `https://api.asgardeo.io/t/<org-name>` — org from `asg status`
+- Base URL for SDKs: **copy the `Base URL` line from `asg status` verbatim.** Don't build it from a remembered host — production, dev and self-hosted deployments each have their own, and a base URL already in the project is the answer, never a mistake to fix.
 - Interactive dashboard: `asg tui` (point the user to it; don't launch it yourself)

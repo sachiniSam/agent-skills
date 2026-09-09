@@ -47,17 +47,37 @@ the agent's work isn't tied to a particular person. An agent that wants standing
 data with no approval at any point has no flow — say so; the choice is 1 with its own permissions or
 2 with the user's consent.
 
-**Once they've answered, lay out the plan — then start.** Same as the login and authorization
-tracks: a few lines on what gets created and what they end up with, so nothing in the run is a
-surprise. Fill it from their answers:
+**Once they've answered, lay out the plan — then wait for them to approve it.** Same three headings
+and per-resource tables as the login and authorization tracks (see **How to work** in `SKILL.md`), so
+nothing in the run is a surprise. Fill it from their answers:
 
-> Here's the plan:
-> - Create the agent **orders-assistant** with its own sign-in app (redirect `http://localhost:3001/callback`); credentials go into `assistant/.env`, which is gitignored.
-> - Authorize that app for the **Orders API** and create the role **Orders Assistant Access** with `read:orders`, `write:orders`; assign the agent to it.
-> - Wire `@asgardeo/javascript` into `assistant/index.js` so it sends the agent's token.
-> - Then you run the assistant once and we check the API's activity log shows the agent.
+> Here's the plan.
 >
-> Starting.
+> **What I'll create**
+>
+> **Agent**
+>
+> | Name | Sign-in app | Redirect URI |
+> |---|---|---|
+> | orders-assistant | Created with the agent, same ID | `http://localhost:3001/callback` |
+>
+> **Role** (on the agent's own application — Application audience)
+>
+> | Role | Scopes | Member |
+> |---|---|---|
+> | Orders Assistant Access | `read:orders`, `write:orders` | the agent |
+>
+> **What changes in your code**
+>
+> - `assistant/.env` — the CLI writes `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` into it directly; already gitignored, and the secret is never shown.
+> - `assistant/index.js` — wires `@asgardeo/javascript` so every call carries the agent's token.
+>
+> **How you'll know it worked**
+>
+> You run the assistant once, and the API's activity log shows the agent as the caller instead of `anonymous`.
+
+Then **end the turn and wait for approval** — the same rule as everywhere else, and nothing is
+created until they answer.
 
 **Steps 1–3 are the same either way.** After that, follow the matching section.
 
@@ -107,7 +127,36 @@ If they choose the existing one, use *An application already exists* below.
 agent's ID, has API-based authentication on, and the CLI shapes it as a public client with PKCE,
 the authorization-code grant, the redirect URI you give, and JWT access tokens. `--env-file` makes
 the CLI write the credentials straight into the agent's env file, so the secret is never shown.
-Together that is everything the flows below need — but prepare the file first:
+Together that is everything the flows below need — but settle where the secret is going first.
+
+#### Where the secret lives is the user's decision
+
+The agent's *code* never varies: it reads `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` from the
+environment, whatever put them there. Use those three names always, and the same code works on a
+laptop, on a platform that injects variables, or behind a secret manager. What varies is how the
+values reach the environment, and that is a deployment choice the user owns — a gitignored `.env`
+locally, platform variables on Vercel or Railway, AWS Secrets Manager or Vault injecting at start-up,
+a Kubernetes secret, an encrypted file. Don't assume dotenv because the examples here use it.
+
+So ask (see **How to work** in `SKILL.md`), proposing from what the project shows — a `dotenv`
+dependency or an existing `.env` points one way, a `vercel.json`, Dockerfile or Kubernetes manifest
+another. Then take the matching path:
+
+- **A file the CLI can write — the default whenever the destination is a file.** Use `--env-file`:
+  the secret goes Asgardeo → CLI → disk and is never displayed. This is the local-development
+  answer, and the walkthrough below.
+- **Somewhere the CLI cannot reach** — a secret manager, a platform's variables UI, CI settings.
+  Use `-c`, which puts the secret on the user's clipboard for them to paste in. Tell them what to
+  paste it into and under which name; **never read the clipboard back** (`pbpaste`, `xclip`, …) —
+  there is no way to check what is in it, and reading it would put the secret in your context.
+- **Neither fits** — the user runs `asg agents create` themselves and handles the secret without
+  you. Rare, but always available.
+
+Whichever they choose, the secret never passes through the conversation. And say plainly that a
+dotenv file is a local-development answer: it should not ship to production or into an image. If the
+secret is ever lost it cannot be read back — it is regenerated in the Console, not recovered.
+
+#### Writing it to a file (local development)
 
 1. **Pick the env file the agent's code reads** (`.env` next to it) and confirm git ignores it:
    `git check-ignore -q <path>/.env || echo "NOT ignored"`. If it isn't ignored — including
@@ -115,7 +164,7 @@ Together that is everything the flows below need — but prepare the file first:
    `.env.example`; that file is meant to be committed.
 2. **Write the file with what you already know.** The CLI fills in the rest:
    ```
-   ASGARDEO_BASE_URL=https://api.asgardeo.io/t/<org>
+   ASGARDEO_BASE_URL=<the Base URL line from `asg status`, verbatim>
    REDIRECT_URI=http://localhost:3001/callback
    ```
 3. **Create the agent, pointing the CLI at that file:**
@@ -147,9 +196,7 @@ ID: <agent-id>
 the keys are present (`grep -c '^AGENT_SECRET=' assistant/.env`), never to print it.
 
 **The secret can never be read again** after this. If it is lost, regenerate it in the Console
-(the agent → **Credentials** → **Regenerate**) and update every place the old one was used. If the
-user wants it in a secret manager rather than a file, `-c` puts it on *their* clipboard instead;
-never read the clipboard yourself (`pbpaste`, `xclip`, …) — there is no way to check what is in it.
+(the agent → **Credentials** → **Regenerate**) and update every place the old one was used.
 
 ### An application already exists
 
@@ -242,7 +289,7 @@ import { AsgardeoJavaScriptClient } from '@asgardeo/javascript';
 dotenv.config({ path: fileURLToPath(new URL('.env', import.meta.url)) });
 
 const asgardeo = new AsgardeoJavaScriptClient({
-  baseUrl: process.env.ASGARDEO_BASE_URL,        // https://api.asgardeo.io/t/<org>
+  baseUrl: process.env.ASGARDEO_BASE_URL,        // from `asg status`, not a remembered host
   clientId: process.env.CLIENT_ID,               // the application's client_id (step 2)
   afterSignInUrl: process.env.REDIRECT_URI,      // must match the app's redirect URI
   scopes: ['openid', 'read:orders'],             // what to ask for
