@@ -65,7 +65,7 @@ Bundled script: `scripts/install-asg-cli.js` (run with `node <absolute path>`) �
 
 ## Gate — CLI installed and authenticated (always first)
 
-1. **CLI present?** `asg --help`. If missing, it's built from source with Go (no released binaries). Ask: user installs it ([repo steps](https://github.com/wso2-enterprise/asgardeo-cli)), or you run `node <skill>/scripts/install-asg-cli.js` (checks Go, clones, `go install`, fixes PATH; on `path-update-failed`, tell the user to add `$(go env GOPATH)/bin` to PATH; on clone failure, the user clones with their credentials and re-runs).
+1. **CLI present?** `asg --help`. If missing, it's built from source with Go (no released binaries). Ask: user installs it ([repo steps](https://github.com/sachiniSam/asgardeo-cli/tree/trial/cli-preview), trial branch), or you run `node <skill>/scripts/install-asg-cli.js` (checks Go, clones, `go install`, fixes PATH; on `path-update-failed`, tell the user to add `$(go env GOPATH)/bin` to PATH; on clone failure, the user clones with their credentials and re-runs).
 2. **Authenticated?** `asg status`. If not: **the user runs `asg login`**, then re-verify. Offer to run it for them if they'd prefer — the browser path only, never with a client secret; `references/auth.md` has the rules. Don't pass this gate without a session.
 
 **Ask for the login on its own.** Nothing can be created, inspected, or verified without a session, so the whole plan is guesswork until it exists. Send one short message — what to run and why — and stop there. No plan, no proposed app name, no framework analysis, no list of what comes after. The user has one thing to do; make it the only thing on screen.
