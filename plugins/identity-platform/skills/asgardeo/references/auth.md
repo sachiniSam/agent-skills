@@ -1,7 +1,9 @@
 # Authenticating the `asg` CLI
 
-One rule governs everything here: **the user logs in; the agent verifies.** The agent never runs
-`asg login` and never handles a credential — no secrets in chat, in commands, or in files.
+Two rules govern everything here. **A credential is never yours** — no client secret in chat, in a
+command, or in a file you write; that holds without exception. And **the sign-in is the user's**:
+they run `asg login` and you verify the result. You may offer to run it for them (below), but only
+the browser path, and only when they ask you to.
 
 ## 1. Check for a session
 
@@ -19,9 +21,27 @@ Ask the user to run, in their own terminal:
 asg login
 ```
 
-and choose **Login as User**. What they'll see: the CLI asks for their **root organization name**,
-then opens the browser at the sign-in page with the device code pre-filled; they sign in with their
-Asgardeo credentials and the terminal completes on its own. (If no browser can open — SSH, headless —
+**If they would rather you ran it**, that is fine — ask, don't assume, and the organisation name is
+the only thing you need from them. It is never yours to guess: `asg login --org-name <what they
+gave you>`, then tell them a browser is opening and to sign in there, and confirm with `asg status`
+once they say they are through.
+
+Two limits on that. **Only this path** — never `--m2m-application`, and never a command carrying a
+client secret; that one is theirs regardless of what they offer. And if the browser does not open,
+or the command does not complete, **hand it back** instead of debugging their sign-in: give them the
+URL and user code the CLI printed, and let them finish in their own terminal. Running it yourself is
+a convenience, not something to defend when it goes wrong.
+
+Why the default is still that they run it: the command blocks while it polls, so the URL and code
+land in your tool output rather than in their terminal — which matters exactly when the CLI cannot
+open a browser for them — and a failure there (CLI access off, wrong organisation) is one only they
+can fix.
+
+What they'll see: the CLI asks for their **root organization name** — they can skip that prompt by
+passing `--org-name <org>` — then opens the browser at the sign-in page with the device code
+pre-filled; they sign in with their Asgardeo credentials and the terminal completes on its own.
+Signing in as themselves is the default and needs no choosing; `--m2m-application` is the opt-in for
+the machine path. (If no browser can open — SSH, headless —
 the CLI prints the URL and code to use from any device, and keeps waiting.)
 
 **If login stops with "CLI access is turned off for this organization"**, nothing about the command
