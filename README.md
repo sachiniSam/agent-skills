@@ -8,6 +8,7 @@ Official Agent skills for building and managing with WSO2 products.
 |--------|-------------|
 | [api-platform](./plugins/api-platform/README.md) | Design, assess, and fix OpenAPI specs; deploy and manage APIs via the WSO2 API Gateway |
 | [agent-manager](./plugins/agent-manager/README.md) | Deploy and inspect agents; tail logs, metrics, and traces; triage runtime failures |
+| [identity-platform](./plugins/identity-platform/README.md) | Add login and role-based access to apps, give AI agents an identity, and secure MCP servers with Asgardeo via the `asg` CLI |
 | [integrator](https://github.com/ballerina-platform/skills) | Write integrations in Ballerina, discover connectors from Ballerina Central, run and test projects; `.bal` code intelligence |
 
 ## Installation
@@ -37,6 +38,7 @@ Install a plugin:
 ```
 /plugin install api-platform@wso2-agent-skills
 /plugin install agent-manager@wso2-agent-skills
+/plugin install identity-platform@wso2-agent-skills
 /plugin install integrator@wso2-agent-skills
 ```
 

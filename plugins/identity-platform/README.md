@@ -6,7 +6,7 @@ Agent skill for the WSO2 Identity Platform (Asgardeo).
 
 | Skill | Triggers |
 |-------|----------|
-| **asgardeo** | Install and authenticate the `asg` CLI; create and manage applications, users, groups, roles, identity providers, API resources, scopes, branding, organizations, and agents; integrate the Asgardeo SDK into your app |
+| **asgardeo** | Add login, SSO, MFA or passwordless sign-in to an app; gate features or an API by role or scope; give an AI agent its own identity or act-on-behalf-of tokens; secure an MCP server; create and manage any Asgardeo resource through the `asg` CLI; debug a 403 or a login that won't complete |
 
 ## Getting Started
 
@@ -27,6 +27,30 @@ Go from zero to working login in your framework of choice.
 ```
 
 The skill installs the `asg` CLI, helps you log in, registers an OAuth2/OIDC application, and wires the matching Asgardeo SDK into your code.
+
+### Gating features by role
+
+```
+> Only admins should be able to delete orders in my app — set that up with Asgardeo.
+```
+```
+> Protect my Express API with Asgardeo so callers need the read:orders scope.
+```
+
+### Giving an AI agent an identity
+
+```
+> My LangChain agent calls the Orders API — give it its own Asgardeo identity.
+```
+```
+> Let my assistant act on behalf of the signed-in user when it calls my API.
+```
+
+### Securing an MCP server
+
+```
+> Anyone can call my MCP server right now. Require Asgardeo login and let only admins use create_order.
+```
 
 ### Managing applications
 

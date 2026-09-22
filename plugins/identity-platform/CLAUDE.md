@@ -6,26 +6,38 @@
 
 ## asgardeo Skill
 
-A mandatory **gate** followed by an **intent router** into four tracks:
+Two mandatory **gates** followed by an **intent router** into six tracks:
 
-- **Gate** — install the `asg` CLI (built from source via `go install`), then have the user run `asg login` themselves; verify with `asg status`. Management ops also need the right `internal_*_mgt` scope (not just a session).
-- **Track A — Authenticate an app** — register an SPA/OIDC/mobile app, fetch the client ID (via `apps view`, since `create` may not return it), wire the matching Asgardeo SDK for login/logout. Optionally configure login methods (social, enterprise, MFA, passwordless): connections are Console-only (`asg idps` is read-only), but the per-app login flow is editable via `asg apps update --file`.
-- **Track B — Authorize an app** — RBAC over API scopes, one ordered pipeline per the official guide: register API resource + scopes → authorize the app for them (RBAC policy) → set role audience → create roles from those scopes + assign → enforce by checking token scopes. Steps without a dedicated CLI verb (authorize-app-for-API, roles claim) use raw `asg api` calls, with the Console as fallback.
-- **Track C — Manage resources** — direct CLI ops across apps, users, groups, roles, idps, apis/scopes, branding, orgs, agents; flags read from `asg <cmd> --help` at runtime.
-- **Track D — Troubleshoot** — 403 diagnosis (HTML body = WAF; JSON = scope gap), login issues.
+- **Gate 1 — a session.** `asg --help` (build from source via `scripts/install-asg-cli.js` if missing), then `asg status`; if not authenticated, the user runs `asg login` themselves and the agent re-verifies.
+- **Gate 2 — an approved plan.** Ask the track's questions first (names, URIs, scopes), then present the plan — *what I'll create*, *what changes in your code*, *how you'll know it worked* — and create nothing until the user approves.
+- **Track A — Authenticate an app** — register an SPA/OIDC/mobile app, wire the framework's Asgardeo SDK from the docs quickstart with the real `clientId` and `baseUrl`, create a test user, prove login.
+- **Track B — Authorize an app** — RBAC over API scopes in order: API resource + scopes → authorize the app → role audience → roles carrying the scopes → JWT tokens → enforce by checking the token's `scope` claim.
+- **Track C — Manage resources** — direct CLI operations; feature areas with no CLI verb go through `asg api` per `references/management-apis.md`.
+- **Track D — Troubleshoot** — a 403 is a role-permission gap, never a session problem; login failures start with the redirect URI.
+- **Track E — Agent identity** — an AI agent's own credentials, roles and tokens, acting on its own or on a user's behalf; the secret is handed off with `--env-file` and never passes through chat.
+- **Track F — Secure an MCP server** — register the server as an `MCP` API resource and its client as an `mcp` app, roles per scope, protect the server with `@asgardeo/mcp-express` or FastMCP plus per-tool scope checks.
 
 ## Conventions
 
-- **Credentials never flow through the agent.** Login (including the m2m client secret) is run by the user in their own terminal; the agent only runs `asg status`.
-- **Read the CLI, don't memorize it.** The CLI self-documents — use `asg <cmd> --help` or `asg docs` for exact, current flags rather than hardcoding them.
+- **A credential is never yours.** Login is the user's; client and agent secrets stay in the Console or go straight to an env file the CLI writes.
+- **Read the CLI, don't memorize it.** `asg <cmd> --help` for exact flags; `--format json` with `-N -y` for unattended runs.
+- **Fetch the docs' markdown twins.** Every docs page exists as `<path>.md` (index: `docs/llms-full.txt`); never the HTML page.
+- **Every summary carries the Console link** of each resource created or changed.
 - **Bundled scripts are Node (builtins only) or bash — no Python.**
 
 ## Key Reference Files
 
-- `skills/asgardeo/references/auth.md` — login (user/device + m2m), credential safety, and the management-scope prerequisite
-- `skills/asgardeo/references/cli-overview.md` — intent → command map across all resource domains, plus the create-then-fetch-the-ID caveat
-- `skills/asgardeo/references/authentication-methods.md` — login methods (social, enterprise, MFA, passwordless) and editing an app's login flow, CLI vs Console (Track A)
-- `skills/asgardeo/references/authorize-app.md` — the full RBAC pipeline (API resource + scopes → authorize app → role audience → roles → enforce) with exact commands (Track B)
-- `skills/asgardeo/references/sdk-integration/` — one self-contained file per framework (react, nextjs, vue, javascript, node-express, dotnet) + a `README.md` selector and fallback doc-map; the agent reads only the relevant framework file
-- `skills/asgardeo/references/troubleshooting.md` — 403 diagnosis, scope gaps, inspecting granted scopes (Track D)
+- `skills/asgardeo/references/auth.md` — CLI login: who runs it, the browser path, special cases, session errors
+- `skills/asgardeo/references/planning.md` — the plan's three headings and one-table-per-resource shape (Gate 2)
+- `skills/asgardeo/references/cli-overview.md` — intent → command map, output parsing, unattended-run and app gotchas, Console links, failure diagnosis
+- `skills/asgardeo/references/authorize-app.md` — the full RBAC pipeline with exact commands (Track B)
+- `skills/asgardeo/references/authentication-methods.md` — social/enterprise login, MFA, passwordless; editing an app's login flow (Track A)
+- `skills/asgardeo/references/sdk-integration.md` — framework → app type, SDK and docs page; inputs every integration needs; calling a protected API; reading roles
+- `skills/asgardeo/references/agent-identity.md` — agent credentials, roles and tokens; acting on a user's behalf; SDK calls by language (Track E)
+- `skills/asgardeo/references/mcp-server.md` — MCP server as a resource, the client app shape, protecting the server, the Inspector proof (Track F)
+- `skills/asgardeo/references/management-apis.md` — feature areas with no CLI verb → their REST APIs via `asg api` (Track C)
 - `skills/asgardeo/scripts/install-asg-cli.js` — clones the CLI repo and builds it with `go install`
+
+## Evals
+
+`skills/asgardeo/evals/` is a promptfoo suite run against a stubbed `asg` CLI on the fixture PATH (no org or credentials needed): 3 triggering tests and 16 task-quality scenarios, one per SDK framework plus tracks B–F. See its README and the repo-level [EVALS.md](../../EVALS.md). After editing the skill, refresh the fixture copy: `node tools/sync-fixtures.js identity-platform asgardeo`.
