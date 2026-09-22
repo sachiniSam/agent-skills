@@ -3,39 +3,40 @@ name: asgardeo
 description: >
   Asgardeo (WSO2 Identity Platform) work through the `asg` CLI. Use when the user wants to add
   login, SSO, social login, MFA, or passwordless sign-in to an app; gate features or an API by
-  role, permission, or OAuth2 scope; give an AI agent its own identity, credentials, or
-  act-on-behalf-of tokens; secure an MCP server or gate its tools behind OAuth; create, list, update, or delete Asgardeo resources (applications,
-  users, groups, roles, identity providers, API resources, branding, organizations, agents) or
-  configure any other Asgardeo setting; install, log in to, or run the asg CLI; or debug an
-  Asgardeo failure such as a 403 or a login that won't complete.
+  role or scope; give an AI agent its own identity, credentials, or act-on-behalf-of tokens;
+  secure an MCP server or gate its tools behind OAuth; manage or configure any Asgardeo resource
+  or setting (applications, users, groups, roles, identity providers, API resources, branding,
+  organizations, agents); install, log in to, or run the asg CLI; or debug an Asgardeo failure
+  such as a 403 or a login that won't complete.
 ---
 
 # Asgardeo (WSO2 Identity Platform)
 
 You manage Asgardeo end-to-end through the `asg` CLI — registering and authenticating apps, authorizing them with roles and API scopes, managing identity resources, and wiring the Asgardeo SDK into the user's code.
 
-Users arrive with one intent — "let people log in", "lock this down by role", "add a user", "why the 403". Route to one track and start there. Prefer `asg <cmd> --help` over guessing flags (the CLI self-documents); the official docs at https://wso2.com/identity-platform/docs are the fallback when the CLI or SDK surface is ambiguous.
+Users arrive with one intent — "let people log in", "lock this down by role", "add a user", "why the 403". Route to one track and start there. Prefer `asg <cmd> --help` over guessing flags (the CLI self-documents); the official docs at https://wso2.com/identity-platform/docs are the fallback when the CLI or SDK surface is ambiguous. **Every docs page has a markdown twin** — the same path with `.md` in place of the trailing slash (`quick-starts/react.md`) — and `docs/llms-full.txt` indexes them all; fetch the twin, never the HTML page.
 
 **How to work:**
 - **Two gates stand before anything is created** — a session (Gate 1) and an approved plan (Gate 2). Every track starts past both.
+- **A credential is never yours.** Client and agent secrets stay in the Console or go straight to an `--env-file`; none passes through chat, a command you run, or a file you write. The one exception is a throwaway test-user password, reported once in the summary.
 - **Ask through the harness's question UI, everywhere it exists.** Where a structured question tool is available (`AskUserQuestion` in Claude Code), route every question through it — an app or agent name, a role name, a redirect URI, which scenario applies, approving the plan. Ask related questions together in one call, and rely on the tool's free-text option for "something else". Where no such tool exists, ask the same questions in prose, in one message. Either way: **end the turn and wait.**
-- **Pre-empt the blocker before it blocks.** A fresh org has no one to log in as — offer a test user *before* the login test. When login works, offer role-gating.
-- **Show the user what you changed.** When you create or modify a resource, include its Console link in the summary (`https://console.asgardeo.io/t/<org>/app/<resource>/<id>` — see `cli-overview.md`) so they can inspect or adjust it themselves. Essential when a step is Console-only: link straight to the screen.
+- **Pre-empt the blocker before it blocks** — offer the next thing the user will need before they hit its absence.
+- **A summary is finished when every resource in it has its Console link.** For each resource created or changed, the closing summary carries `https://console.asgardeo.io/t/<org>/app/<resource>/<id>` (`<resource>` is `applications`, `users`, `roles`, `api-resources`… — the full pattern is in `cli-overview.md`), so the user can inspect or adjust it. When a step is Console-only, link straight to that screen.
 - **On a failure, diagnose (Track D) before trying something else.**
 - **Track names are internal.** Say "set up login" or "gate features by role" to the user — never "Track A".
 
 ## Reference files
 
 Load only what the current track points to:
-- `references/auth.md` — CLI login flow. Read before handling authentication.
-- `references/planning.md` — the plan's three headings and the one-table-per-resource shape. Read at Gate 2.
-- `references/cli-overview.md` — intent → command map, output/parsing behavior, unattended-run gotchas, and failure diagnosis. Read when running management commands, and when one fails.
-- `references/authorize-app.md` — the full RBAC pipeline with exact commands. Read in Track B.
-- `references/authentication-methods.md` — social/enterprise login, MFA, passwordless; editing an app's login flow. Read in Track A when the user wants more than username/password.
-- `references/sdk-integration.md` — framework routing (which docs quickstart to fetch, app type, package), the inputs every integration needs (`clientId`, `baseUrl`, redirect URI), and how to call a protected API and read roles. Read before touching app code.
-- `references/agent-identity.md` — giving an AI agent its own credentials, roles and tokens, and letting it act on a user's behalf; SDK calls by language and framework. Read in Track E.
-- `references/mcp-server.md` — registering an MCP server as a resource, the client app shape, protecting the server with `@asgardeo/mcp-express` or FastMCP, and the Inspector proof. Read in Track F.
-- `references/management-apis.md` — feature areas with no CLI verb (consent, templates, governance, sessions, user stores, webhooks…) → their management REST APIs via `asg api`. Read when a request matches no CLI command.
+- `references/auth.md` — CLI login: who runs it, the browser path, special cases, session errors.
+- `references/planning.md` — the plan's three headings and the one-table-per-resource shape.
+- `references/cli-overview.md` — intent → command map, output/parsing, unattended-run and app gotchas, Console links, failure diagnosis.
+- `references/authorize-app.md` — the full RBAC pipeline with exact commands.
+- `references/authentication-methods.md` — social/enterprise login, MFA, passwordless; editing an app's login flow.
+- `references/sdk-integration.md` — framework routing, the inputs every integration needs, calling a protected API, reading roles.
+- `references/agent-identity.md` — an agent's own credentials, roles and tokens; acting on a user's behalf; SDK calls by language.
+- `references/mcp-server.md` — MCP server as a resource, the client app shape, protecting the server, the Inspector proof.
+- `references/management-apis.md` — feature areas with no CLI verb → their management REST APIs via `asg api`.
 
 Bundled script: `scripts/install-asg-cli.js` (run with `node <absolute path>`) — clones and builds the CLI.
 
@@ -44,13 +45,7 @@ Bundled script: `scripts/install-asg-cli.js` (run with `node <absolute path>`) �
 ## Gate 1 — a session (always first)
 
 1. **CLI present?** `asg --help`. If missing, it's built from source with Go (no released binaries). Ask: user installs it ([repo steps](https://github.com/sachiniSam/asgardeo-cli/tree/trial/cli-preview), trial branch), or you run `node <skill>/scripts/install-asg-cli.js` (checks Go, clones, `go install`, fixes PATH; on `path-update-failed`, tell the user to add `$(go env GOPATH)/bin` to PATH; on clone failure, the user clones with their credentials and re-runs).
-2. **Authenticated?** `asg status`. If not: **the user runs `asg login`**, then re-verify. Offer to run it for them if they'd prefer — the browser path only, never with a client secret; `references/auth.md` has the rules.
-
-**Ask for the login on its own.** Nothing can be created, inspected, or verified without a session, so send one short message — what to run and why — and stop there. The user has one thing to do; make it the only thing on screen:
-
-> Before I can set anything up in Asgardeo I need a session on your org. Run `asg login` — it asks for your organisation name, then opens a browser to sign in. Tell me when you're through, or give me the org name and I'll start it for you.
-
-Once `asg status` confirms the session, move to Gate 2.
+2. **Authenticated?** `asg status`. If not, read `references/auth.md` and follow it: the user runs `asg login`, in a message of its own, and you re-verify with `asg status` before Gate 2.
 
 ## Gate 2 — an approved plan
 
@@ -83,14 +78,13 @@ Goal: an app registered in Asgardeo and its SDK wired so users can log in.
 1. **Identify the framework** — inspect the project or ask. Framework decides the app type: `spa` (browser SPAs), `oidc` (server-rendered/confidential), `mobile`.
 2. **Settle the name and redirect URI at Gate 2** — both go on the app:
    - **Name** — what the user and their teammates see in the Console for the life of the org. Propose one from the project (repo or package name) and ask; create only under a name the user has confirmed.
-   - **Redirect URI** — the SDK's sign-in redirect must be registered on the app; confirm the dev URL. Ask whether there's a deployed URL too and register both at once: `apps protocol update --edit 'callbackURLs=[…]'` replaces the whole array, so adding production later means restating the dev URL in the same command or silently losing it.
-   - **Access token type** — opaque (default, revocable) unless a backend will read the tokens, in which case create with `--access-token-type jwt` now: Track B step 5 is the same setting applied later, and discovering it late looks like "roles aren't working" rather than a token-format problem. A backend that exists but doesn't check tokens yet is borderline — say what each choice costs and let the user pick.
-3. **Register the app** — `asg apps create --name "<name>" --type <spa|oidc|mobile> --redirect-uri <url> -N -y`. The output includes the new app's **ID and Client ID** — capture them. For `oidc` apps the user reads the client secret from the Console (`asg apps settings`); secrets never pass through chat.
-   - The CLI derives **allowed origins** from the redirect URIs. If login later fails on CORS at the token exchange rather than on the redirect, check `allowedOrigins` in `asg apps protocol view` — not just `callbackURLs`.
-4. **Wire the SDK** — `references/sdk-integration.md` routes to the framework's docs quickstart and lists the inputs (`clientId` from the create output, `baseUrl` from `asg status`); wire the provider + login/logout. (It also covers calling a protected API and reading roles, needed later in Track B.)
+   - **Redirect URI** — the SDK's sign-in redirect must be registered on the app; confirm the dev URL, and ask whether there's a deployed URL to register at the same time ("App gotchas" in `references/cli-overview.md` says why both go on in one command).
+   - **Access token type** — opaque (default, revocable) unless a backend will read the tokens, in which case create with `--access-token-type jwt` now; Track B step 5 says why. A backend that exists but doesn't check tokens yet is borderline — say what each choice costs and let the user pick.
+3. **Register the app** — `asg apps create --name "<name>" --type <spa|oidc|mobile> --redirect-uri <url> -N -y`. The output includes the new app's **ID and Client ID** — capture them. For `oidc` apps the user reads the client secret from the Console (`asg apps settings`).
+4. **Wire the SDK** — `references/sdk-integration.md` routes to the framework's docs quickstart and lists the inputs (`clientId` from the create output, `baseUrl` from `asg status`); wire the provider + login/logout. The step is done when both values are in the project — in the code, or in a gitignored env file you write with them filled in — and the only value left for the user to paste is a client secret. (The reference also covers calling a protected API and reading roles, needed later in Track B.)
 5. **More than username/password?** Social, enterprise, MFA, passwordless → `references/authentication-methods.md`. Be explicit about which parts are CLI-editable and which are Console.
-6. **Someone to log in as** — a fresh org has no users. Offer to create a test user *before* the login test, and create it yourself. The account needs a working password immediately, and `asg users create` only sets one with `--password <value> --set-password` — without that flag Asgardeo emails the person to set their own, which never arrives for a test address. Generate a strong password, pass it, and report it **once, in the summary afterwards**. It is a throwaway test credential — unlike a client or agent secret, which never passes through chat at all.
-7. **Verify** — the user runs the app and signs in with that user. First suspect on failure: redirect-URI mismatch (Track D).
+6. **Someone to log in as** — a fresh org has no users. Offer to create a test user *before* the login test, and create it yourself: `asg users create --user-store DEFAULT --email <addr> --first-name <n> --last-name <n> --password <generated> --set-password -N -y` (the email is the username; "App gotchas" in `references/cli-overview.md` says why `--set-password` matters). Report the password once, in the summary afterwards.
+7. **Prove it** — the user runs the app and signs in with that user; give them the URL and what they should see. First suspect on failure: redirect-URI mismatch (Track D).
 8. **Offer what's next** — typically role-gating (Track B).
 
 ---
@@ -116,9 +110,9 @@ Show scopes (before creating) and roles (after step 4) as tables — shape in `r
 
 Direct CLI operations on users, groups, roles, apps, APIs, scopes, IdPs, branding, orgs, agents.
 
-1. **Route** — `references/cli-overview.md` maps intent → command. No verb for it? **Read `references/management-apis.md` before improvising** — it maps the feature area to its REST API and shows the `asg api` call shape. Most of the wider surface is reachable that way; only a few UI experiences are Console-only. Guessing a path and getting an error is not evidence that something is Console-only.
+1. **Route** — `references/cli-overview.md` maps intent → command. No verb for it? `references/management-apis.md` maps the feature area to its REST API and shows the `asg api` call shape. Treat a feature as Console-only only after that file has no entry for it.
 2. **Confirm usage** — `asg <resource> <action> --help`; run unattended with `-N -y` and parse with `--format json` (conventions in `cli-overview.md`).
-3. **Run and report** — ✓/✗ plus the result that matters (usually the new ID).
+3. **Prove it** — report ✓/✗ with the result that matters (usually the new ID) and the resource's Console link.
 4. **Destructive ops need explicit confirmation** — state exactly what a `delete` or bulk update will remove and get the user's OK first. Delete only what the user asked about.
 
 ---
@@ -149,8 +143,8 @@ deprecated `list` verbs are there) and `references/agent-identity.md`.
    - **On its own** — the agent's own permissions, for work not tied to a particular person
    - **On behalf of a user** — it borrows a specific person's permissions, with their consent (in the browser when they're signing in, or by CIBA when they're away). Most assistant-style agents are this one.
 2. **Create the agent** — `asg agents create --allow-user-login` (which also creates the client it signs in through — the normal practice, don't ask), and give it a role. Track B is reused wholesale for permissions: an agent's roles and scopes work exactly like a user's. The one twist is that the agent's auto-created app takes **Application**-audience roles.
-3. **Hand off the secret** — confirm the agent's `.env` is gitignored, then let the CLI write the credentials into it with `--env-file`. The secret is never shown; never read the clipboard yourself.
-4. **Wire the token flow** — only this step differs between the two ways of acting, and the reference has a section for each, routed by language and framework. The Asgardeo SDK does the exchange (`@asgardeo/javascript` or `asgardeo_ai`); don't hand-roll it. When the agent acts for a user, that person's sign-in happens in the browser exactly as in Track A — the agent never sees their password.
+3. **Hand off the secret** — confirm the agent's `.env` is gitignored, then let the CLI write the credentials into it with `--env-file`.
+4. **Wire the token flow** — only this step differs between the two ways of acting, and the reference has a section for each, routed by language and framework. The step is done when the agent's `package.json` (or requirements) lists `@asgardeo/javascript` or `asgardeo_ai` and its code imports the client from it: the exchange is the SDK's `getAgentToken` / `getOBOToken` (or the Python equivalents), copied from the reference's section, whether or not the package can be installed right now. When the agent acts for a user, that person's sign-in happens in the browser exactly as in Track A — the agent never sees their password.
 5. **Prove it** — the user's to run, not yours: give them the exact command and what they should see, as Track A does with "try signing in".
 
 ---
@@ -171,8 +165,11 @@ Read `references/mcp-server.md`. The MCP server is a **resource** (Track B's API
    E's app instead.
 4. **Authorize and assign** — Track B steps 2–4: authorize the app for the MCP server's scopes,
    create roles carrying them, assign to users. Show scopes and roles as tables.
-5. **Protect the server** — `@asgardeo/mcp-express` (`router()` + `protect()`) or the FastMCP
-   `TokenVerifier`; then a per-tool scope check, which neither SDK does for you.
+5. **Protect the server** — done when `package.json` lists `@asgardeo/mcp-express` and the server
+   imports `configuredAuthServer` from it (`router()` + `protect()` on the MCP route), or FastMCP
+   uses the quickstart's `TokenVerifier`; the reference has both snippets, so the JWT verification
+   is the SDK's whether or not the package can be installed right now. Then a per-tool scope
+   check, which neither SDK does for you.
 6. **Prove it** — the user runs MCP Inspector against the server: 401 without a token, tools
    listed after login as a user with the role, a tool refused for a user without it.
 
@@ -183,4 +180,4 @@ Read `references/mcp-server.md`. The MCP server is a **resource** (Track B's API
 - Command pattern: `asg <resource> <action> [flags]` — `--help` at every level
 - Unattended: `-N -y`; parseable: `--format json` (stdout is then pure data)
 - `baseUrl` for SDKs and Console links: the `Base URL` line from `asg status`, verbatim — the rule and why is in `references/sdk-integration.md`
-- Interactive dashboard: `asg tui` (point the user to it; don't launch it yourself)
+- Interactive dashboard: point the user to `asg tui`

@@ -9,7 +9,7 @@ dedicated verb, the answer is usually *"yes, via the management API"*, not *"use
 
 1. **Find the API** in the routing table below.
 2. **Fetch its doc page** to get the exact paths and payload shapes — don't guess them:
-   `https://wso2.com/identity-platform/docs/apis/<slug>/`
+   `https://wso2.com/identity-platform/docs/apis/<slug>.md` (the markdown twin of the page)
 3. **Call it:**
    ```bash
    asg api /api/server/v1/<path> -X GET

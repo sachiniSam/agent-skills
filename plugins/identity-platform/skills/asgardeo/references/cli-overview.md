@@ -159,6 +159,20 @@ Redirect URIs can also be set at creation with `--redirect-uri`, and the token f
 > configuration can be exported, edited and applied back without an interactive session. For other
 > resources use `view --format json`; there is no `<resource> export`.
 
+## App gotchas
+
+- **Redirect URIs are one array.** `apps protocol update --edit 'callbackURLs=[…]'` replaces the
+  whole list, so adding a production URL later means restating the dev URL in the same command or
+  silently losing it. Register every URL the user knows about at creation.
+- **CORS at the token exchange, not the redirect.** The CLI derives `allowedOrigins` from the
+  redirect URIs. If login fails on CORS after the redirect succeeded, check `allowedOrigins` in
+  `asg apps protocol view`, not just `callbackURLs`.
+- **A test user needs a password now.** `asg users create` sets one only with
+  `--password <value> --set-password`; without the flag Asgardeo emails the person a set-password
+  link, which never arrives for a test address. Generate a strong password and pass it.
+- **The email is the username.** `asg users create` has no `--username`; unattended it needs
+  `--user-store DEFAULT --email <addr> --first-name <n> --last-name <n>` plus the password flags.
+
 ## Console links — let the user see what changed
 
 After creating or changing something, give the user its Console URL so they can look at it. The

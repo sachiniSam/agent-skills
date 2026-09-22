@@ -19,21 +19,24 @@ knowledge the quickstarts don't cover.
 
 ## Route by framework
 
-Pages live under `https://wso2.com/identity-platform/docs/`. Fetch the row's page — **one fetch,
-not a crawl**; it supplies the SDK-specific part (package, provider setup, sign-in/out, user object).
+Paths are under `https://wso2.com/identity-platform/docs/` and end in `.md`: that is the page's
+markdown twin — the content without site navigation — and it is what to fetch (the HTML page of the
+same path, without `.md`, is for browsers). Fetch the row's page — **one fetch, not a crawl** for
+the quickstarts; it supplies the SDK-specific part (package, provider setup, sign-in/out, user
+object). The full index of markdown pages is `docs/llms-full.txt`.
 
 | Framework | App type | SDK | Fetch |
 |-----------|----------|-----|-------|
-| React (SPA) | `spa` | `@asgardeo/react` | `quick-starts/react/` |
-| Next.js | `oidc` | `@asgardeo/nextjs` | `quick-starts/nextjs/` |
-| Vue | `spa` | `@asgardeo/vue` | `quick-starts/vue/` |
-| Angular | `spa` | | `quick-starts/angular/` |
-| Nuxt | `spa` | | `quick-starts/nuxt/` |
-| Vanilla JS / other SPA | `spa` | `@asgardeo/auth-spa` | `quick-starts/javascript/` |
-| Spring Boot | `oidc` | | `quick-starts/springboot/` |
-| Node / Express | `oidc` | `@asgardeo/passport-asgardeo` | `complete-guides/expressjs/introduction/` (then the pages its nav lists) |
-| .NET (ASP.NET Core / Blazor) | `oidc` | standard OIDC middleware | `complete-guides/dotnet/introduction/` (then the pages its nav lists) |
-| Android / Flutter | `mobile` | | `tutorials/auth-users-into-android-apps/` / `…-flutter-apps/` |
+| React (SPA) | `spa` | `@asgardeo/react` | `quick-starts/react.md` |
+| Next.js | `oidc` | `@asgardeo/nextjs` | `quick-starts/nextjs.md` |
+| Vue | `spa` | `@asgardeo/vue` | `quick-starts/vue.md` |
+| Angular | `spa` | `angular-oauth2-oidc` (generic OIDC, as the quickstart shows) | `quick-starts/angular.md` |
+| Nuxt | `spa` | `@asgardeo/nuxt` | `quick-starts/nuxt.md` |
+| Vanilla JS / other SPA | `spa` | `@asgardeo/auth-spa` | `quick-starts/javascript.md` |
+| Spring Boot | `oidc` | Spring Security OAuth2 client (as the quickstart shows) | `quick-starts/springboot.md` |
+| Node / Express | `oidc` | `@asgardeo/passport-asgardeo` | `complete-guides/expressjs/install-passport-asgardeo.md`, then `add-login-and-logout.md`, `securing-routes-within-the-app.md`, `display-logged-in-user-details.md` (same folder) |
+| .NET (ASP.NET Core / Blazor) | `oidc` | standard OIDC middleware | `complete-guides/dotnet/configure-authentication-properties.md`, then `add-login-and-logout.md`, `securing-routes-within-the-app.md` (same folder) |
+| Android / Flutter | `mobile` | as the tutorial shows | `tutorials/auth-users-into-android-apps.md` / `tutorials/auth-users-into-flutter-apps.md` |
 
 Then:
 
@@ -44,8 +47,13 @@ Then:
    above — skip the quickstart's scaffold-a-new-app steps.
 3. Verify login with a test user (Track A flow).
 
-**Framework not listed:** browse `get-started/try-samples/` for the current link — don't guess
-deep URLs.
+**Framework not listed:** find its page in `docs/llms-full.txt` (one fetch) and take the `.md`
+path from there — that index is the only source for deep paths.
+
+**The token exchange is always the SDK's or the OIDC library's.** A blank SDK cell means the
+fetched page uses a generic OIDC client (Angular, Nuxt, Spring Boot, .NET) or `@asgardeo/auth-spa`
+through a plugin; take whichever that page uses. Writing the authorization-code or PKCE flow by hand
+is never the answer, even when a package seems missing.
 
 ## Auth state has three states, not two
 

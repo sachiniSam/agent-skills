@@ -260,10 +260,11 @@ and each framework's quickstart shows that part.
 
 | Language | Install | Client | Own token | On-behalf-of | Framework quickstarts (tool wiring) |
 |---|---|---|---|---|---|
-| TypeScript / Node | `npm install @asgardeo/javascript` | `new AsgardeoJavaScriptClient({ baseUrl, clientId, afterSignInUrl, scopes })` | `getAgentToken(agentConfig)` | `getOBOSignInURL(agentConfig)` → `getOBOToken(agentConfig, { code, state, session_state })` | `quick-starts/vercel-ai-ts/`, `langchain-ts/`, `google-adk-ts/` |
-| Python | `pip install asgardeo asgardeo_ai` | `AgentAuthManager(AsgardeoConfig(base_url, client_id, redirect_uri), AgentConfig(agent_id, agent_secret))` | `await m.get_agent_token([scopes])` | `m.get_authorization_url_with_pkce([scopes])` → `await m.get_obo_token(code, agent_token=…, code_verifier=…)` | `quick-starts/langchain-py/`, `google-adk-py/`, `crew-ai-py/`, `vercel-ai-py/` |
+| TypeScript / Node | `npm install @asgardeo/javascript` | `new AsgardeoJavaScriptClient({ baseUrl, clientId, afterSignInUrl, scopes })` | `getAgentToken(agentConfig)` | `getOBOSignInURL(agentConfig)` → `getOBOToken(agentConfig, { code, state, session_state })` | `quick-starts/agent-auth-ts.md` (identity only), `vercel-ai-ts.md`, `langchain-ts.md`, `google-adk-ts.md` |
+| Python | `pip install asgardeo asgardeo_ai` | `AgentAuthManager(AsgardeoConfig(base_url, client_id, redirect_uri), AgentConfig(agent_id, agent_secret))` | `await m.get_agent_token([scopes])` | `m.get_authorization_url_with_pkce([scopes])` → `await m.get_obo_token(code, agent_token=…, code_verifier=…)` | `quick-starts/agent-auth-py.md` (identity only), `langchain-py.md`, `google-adk-py.md`, `crew-ai-py.md`, `vercel-ai-py.md` |
 
-Quickstart paths are under `https://wso2.com/identity-platform/docs/`. Fetch the one for the user's
+Quickstart paths are under `https://wso2.com/identity-platform/docs/` and the `.md` is the page's
+markdown twin — fetch that, not the HTML page. Fetch the one for the user's
 framework and language when wiring the token into tools; use this file for the identity part.
 
 The examples below are TypeScript. The Python calls map one-to-one.
@@ -494,10 +495,10 @@ believe the token.
 When the org returns something this file doesn't cover, go to the source, in this order:
 
 - **The agent flows and their prerequisites** — the *Agent authentication* guide:
-  `https://wso2.com/identity-platform/docs/guides/agentic-ai/ai-agents/agent-authentication/`
+  `https://wso2.com/identity-platform/docs/guides/agentic-ai/ai-agents/agent-authentication.md`
 - **Creating and managing agents, credentials, roles** — the sibling guides under
   `guides/agentic-ai/ai-agents/` (*Register and manage agents*, *Agent credentials*, *Access control for agents*)
 - **A framework's tool wiring** — its quickstart from the table above
-- **CIBA for agents end to end** — `tutorials/ciba-for-ai-agents/`
+- **CIBA for agents end to end** — `tutorials/ciba-for-ai-agents.md`
 - **Where the SDK's behaviour is the question** — its source: `asgardeo/javascript` on GitHub,
   `packages/javascript/src/AsgardeoJavaScriptClient.ts`

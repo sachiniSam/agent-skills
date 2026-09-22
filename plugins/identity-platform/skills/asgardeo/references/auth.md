@@ -15,11 +15,13 @@ Authenticated → done, skip the rest. No session (or an error) → step 2.
 
 ## 2. The user logs in
 
-Ask the user to run, in their own terminal:
+Nothing can be created, inspected, or verified without a session, so send one short message —
+what to run and why — and stop there. The user has one thing to do; make it the only thing on
+screen:
 
-```bash
-asg login
-```
+> Before I can set anything up in Asgardeo I need a session on your org. Run `asg login` — it asks
+> for your organisation name, then opens a browser to sign in. Tell me when you're through, or give
+> me the org name and I'll start it for you.
 
 **If they would rather you ran it**, that is fine — ask, don't assume, and the organisation name is
 the only thing you need from them. It is never yours to guess: `asg login --org-name <what they

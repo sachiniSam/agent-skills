@@ -7,8 +7,9 @@ tool on the token's scopes. Three things exist in Asgardeo when this is done —
 application** the tokens are issued to, and **roles** that give users those scopes. The last two
 are Track A and Track B shapes; only the resource type and the server-side SDK are new.
 
-Docs: `https://wso2.com/identity-platform/docs/guides/agentic-ai/mcp/` (concepts, patterns),
-`quick-starts/mcp-auth-server/` (TypeScript), `quick-starts/mcp-auth-server-py/` (Python).
+Docs (fetch the `.md` markdown twins, not the HTML pages):
+`https://wso2.com/identity-platform/docs/guides/agentic-ai/mcp/mcp-server-authorization.md` (concepts),
+`quick-starts/mcp-auth-server.md` (TypeScript), `quick-starts/mcp-auth-server-py.md` (Python).
 
 ## 1. Register the MCP server (API resource, type `MCP`)
 

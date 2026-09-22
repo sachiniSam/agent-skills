@@ -3,6 +3,7 @@
 "How users authenticate" = the application's **login flow** (its authentication sequence). Asgardeo
 supports many methods (password, social, enterprise/federated, MFA, passwordless), and the official
 guides are the source of truth: https://wso2.com/identity-platform/docs/guides/authentication/
+(fetch a page's `.md` twin, e.g. `guides/authentication/social-login/add-google-login.md`; the index is `docs/llms-full.txt`)
 
 There are two layers, and they sit on different sides of the CLI boundary:
 
