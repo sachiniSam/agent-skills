@@ -7,9 +7,10 @@
  * agent sees what production prints. State lives in ../.asg-stub/state.json so
  * `view`/`list` reflect earlier `create` calls within a run.
  *
- * Node builtins only. Invoked through the `asg` shell wrapper beside it, which passes
- * `--` first: Node 22 otherwise consumes a `--env-file` meant for the stub.
- * Put ../bin first on PATH (see package.json "eval").
+ * Source lives in evals/stub/; scripts/prepare.js copies it to
+ * fixtures/workspace/bin/asg.js, writes the `asg` shell wrapper beside it (which
+ * passes `--` first: Node 22 otherwise consumes a `--env-file` meant for the
+ * stub) and captures the real CLI's --help texts into bin/asg-help/.
  */
 'use strict';
 const fs = require('fs');

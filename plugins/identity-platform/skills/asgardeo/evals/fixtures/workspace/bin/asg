@@ -1,3 +1,0 @@
-#!/bin/sh
-# Stub asg CLI for evals. See asg.js.
-exec node "$(dirname "$0")/asg.js" -- "$@"

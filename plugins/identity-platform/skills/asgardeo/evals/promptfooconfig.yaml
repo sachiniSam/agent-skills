@@ -6,15 +6,18 @@
 # replaces the real CLI, so no org, login or credentials are needed; assertions
 # inspect the commands the agent ran and the files it wrote.
 #
+# Nothing under fixtures/ is committed: `npm run eval` first runs
+# scripts/prepare.js, which copies the live skill in, writes the sample apps,
+# installs the stub and captures --help from the installed real `asg`.
+#
 # Run from this directory:
 #   npm install
-#   npm run eval          # puts the stub on PATH, then promptfoo eval
+#   npm run eval                    # prepare fixtures, then promptfoo eval
+#   npm run eval:one -- "A/React"   # one scenario
 #   npm run view
-#   npm run reset         # restore the fixture apps after a run
 #
-# Requires Node >= 22.22 and `claude` logged in (or ANTHROPIC_API_KEY).
-# After editing the skill, refresh the fixture copy from the repo root:
-#   node tools/sync-fixtures.js identity-platform asgardeo
+# Requires Node >= 22.22, the real `asg` on PATH (for its help text), and
+# `claude` logged in (no API key needed locally).
 
 description: "asgardeo skill evals (stubbed asg CLI)"
 
