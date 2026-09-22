@@ -1,0 +1,25 @@
+Manage the inbound protocol configuration of an application — redirect URIs, access token type, grant types, PKCE and related settings.
+These live in a separate resource from the application object and are not reachable through 'apps update'.
+
+Usage:
+  asg apps protocol [flags]
+  asg apps protocol [command]
+
+Examples:
+asg apps protocol view --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg apps protocol update --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 --edit "accessToken.type=JWT" -y
+
+Available Commands:
+  update      Update an application's protocol configuration
+  view        View an application's protocol configuration
+
+Flags:
+  -h, --help   help for protocol
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output
+
+Use "asg apps protocol [command] --help" for more information about a command.

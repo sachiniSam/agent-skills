@@ -1,0 +1,26 @@
+Authenticate your CLI session using your user account or machine-to-machine credentials.
+
+Usage:
+  asg login [flags]
+
+Aliases:
+  login, log-in
+
+Examples:
+asg login
+asg login --server asgardeo --org-name orgxyz --client-id 7dc73e49-2b4e-4c5f-a7b9-9a4f2bd6537d --client-secret "my-secret" --no-interactive
+asg login --server identity-server --identity-server-url https://localhost:9443 --org-name carbon.super --client-id 7dc73e49-2b4e-4c5f-a7b9-9a4f2bd6537d --client-secret "my-secret" --no-interactive
+
+Flags:
+      --client-id string             Client ID
+      --client-secret string         Client Secret
+  -h, --help                         help for login
+  -u, --identity-server-url string   Identity Server URL
+  -o, --org-name string              Organization Name
+  -s, --server string                Server type (asgardeo or identity-server) (default "asgardeo")
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

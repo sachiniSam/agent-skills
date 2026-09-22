@@ -1,0 +1,28 @@
+Delete an existing agent from your organization
+In interactive mode, you can select the agent to delete from the list of agents
+In non-interactive mode, you need to provide the agent ID
+
+Usage:
+  asg agents delete [flags]
+
+Aliases:
+  delete, del
+
+Examples:
+asg agents delete --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg agents delete --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 -y
+asg agents delete --name AgentName -y
+asg agents delete --query "urn:scim:wso2:agent:schema.DisplayName sw AgentName" -y
+
+Flags:
+  -h, --help           help for delete
+  -i, --id string      ID of the agent to be deleted
+  -n, --name string    Name prefix of the agent to delete
+  -q, --query string   Query to find the agent to delete
+  -y, --yes            confirm the deletion
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

@@ -1,0 +1,42 @@
+The users command provides utilities to manage users within your Asgardeo or Identity Server organization.
+
+Use this command to list, create, update, and manage settings for users.
+
+Available subcommands:
+  create  Create a new user
+  update  Update an existing user
+  delete  Delete a user
+  view    View a user
+  list    List all users
+  filter  Filter users
+  settings Open user settings in the Asgardeo console
+
+Usage:
+  asg users [flags]
+  asg users [command]
+
+Aliases:
+  users, user
+
+Examples:
+  asg users list
+asg users --help
+
+Available Commands:
+  create      Create a new user
+  delete      Delete an existing user
+  filter      Filter users based on attributes
+  settings    Open user settings in the Asgardeo console
+  update      Update an existing user
+  view        View details of a specific user
+
+Flags:
+  -h, --help   help for users
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output
+
+Use "asg users [command] --help" for more information about a command.

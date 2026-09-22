@@ -1,0 +1,25 @@
+Update a group in your organization
+
+Usage:
+  asg groups update [flags]
+
+Examples:
+asg groups update --id 550e8400-e29b-41d4-a716-446655440000 --new-name Engineering-Core
+asg groups update --name engineering --new-name Engineering-Team
+asg groups update --query "displayName sw eng" --new-name Engineering-Platform
+asg groups update --id 550e8400-e29b-41d4-a716-446655440000 --file temp-group.json
+
+Flags:
+  -f, --file string       interactive: file to export the group into, edit, and re-import; non-interactive (-N): prepared JSON file to import directly
+  -h, --help              help for update
+  -i, --id string         ID of the group to update
+  -n, --name string       Name prefix of the group to update
+      --new-name string   Updated name of the group
+  -q, --query string      Query to filter groups (Example: --query "displayName sw test" or --query "displayName co 'admin'")
+  -y, --yes               Confirm the update automatically
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

@@ -1,0 +1,28 @@
+Update the inbound protocol configuration of an application using --edit 'path=value'.
+The current configuration is fetched and the edits are merged into it, so fields that are not mentioned keep their values.
+Values are read as JSON where possible, so booleans, numbers and arrays keep their type (for example pkce.mandatory=false or callbackURLs=["http://localhost:3000"]).
+
+Usage:
+  asg apps protocol update [flags]
+
+Examples:
+asg apps protocol update --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 --edit "accessToken.type=JWT" -y
+asg apps protocol update --name web-portal --edit "callbackURLs=[\"http://localhost:3000\"]" -y
+asg apps protocol update --name web-portal --edit "pkce.mandatory=false" --edit "refreshToken.expiryInSeconds=604800" -y
+
+Flags:
+  -e, --edit stringArray   path (dot separated) to edit and value ('=' separated) example: accessToken.type=JWT
+                            pkce.mandatory=false
+                            callbackURLs=["http://localhost:3000"]
+  -h, --help               help for update
+  -i, --id string          ID of the application
+  -n, --name string        Name of the application
+      --protocol string    Inbound protocol to manage (oidc or saml) (default "oidc")
+  -q, --query string       Query to filter the application
+  -y, --yes                Skip the confirmation prompt
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

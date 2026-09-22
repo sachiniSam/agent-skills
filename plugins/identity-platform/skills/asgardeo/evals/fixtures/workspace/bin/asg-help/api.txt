@@ -1,0 +1,27 @@
+Send REST API requests to Asgardeo to manage resources such as applications, users, groups, etc.
+Make sure you have allowed the api authorization required for the requested operations.
+
+Usage:
+  asg api [endpoint] [flags]
+
+Examples:
+asg api /scim2/Users --method GET --query startIndex=1 --query count=10
+asg api /api/server/v1/applications --method POST --body '{"name":"Sample App"}' --output ./application-response.json
+
+Flags:
+  -b, --body string          Request body as a JSON string or a JSON file path (prefix with @)
+      --deadline float       Deadline for the API request in seconds (default 60)
+  -H, --header stringArray   Add a custom HTTP header, in the format 'Key:Value'. Can be specified multiple times for multiple headers.
+  -h, --help                 help for api
+  -X, --method string        HTTP method for the API request (default "GET")
+  -o, --output string        Output file to save the response
+  -q, --query stringArray    Query parameters in the format key=value. Can be specified multiple times for multiple query parameters.
+  -r, --raw                  Output the raw response body
+      --token string         Bearer token for API authentication
+                             By default, the CLI uses the token from the current session. Use this flag to override with a custom token.
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

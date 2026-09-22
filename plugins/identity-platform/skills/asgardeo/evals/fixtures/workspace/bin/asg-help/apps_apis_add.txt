@@ -1,0 +1,24 @@
+Authorize an API resource, with selected scopes and an authorization policy, so the application can request tokens for that API.
+
+Usage:
+  asg apps apis add [flags]
+
+Examples:
+asg apps apis add --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 --api-id 99e70d2c-6d8b-40d2-a716-446655440000 --scopes read:orders,write:orders -y
+asg apps apis add --name web-portal --api-id 99e70d2c-6d8b-40d2-a716-446655440000 --scopes read:orders --policy "No Policy" -y
+
+Flags:
+      --api-id string    ID of the API resource
+  -h, --help             help for add
+  -i, --id string        ID of the application
+  -n, --name string      Name of the application
+      --policy string    Authorization policy identifier (RBAC or No Policy) (default "RBAC")
+  -q, --query string     Query to filter the application
+      --scopes strings   Scopes to authorize (comma separated or repeated)
+  -y, --yes              Skip the confirmation prompt
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

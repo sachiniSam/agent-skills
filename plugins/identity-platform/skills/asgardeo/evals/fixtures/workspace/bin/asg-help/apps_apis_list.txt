@@ -1,0 +1,23 @@
+List the API resources authorized for the application, along with the scopes authorized for each.
+
+Usage:
+  asg apps apis list [flags]
+
+Aliases:
+  list, ls
+
+Examples:
+asg apps apis list --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg apps apis list --name web-portal --format json
+
+Flags:
+  -h, --help           help for list
+  -i, --id string      ID of the application
+  -n, --name string    Name of the application
+  -q, --query string   Query to filter the application
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

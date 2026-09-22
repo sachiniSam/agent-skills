@@ -1,0 +1,44 @@
+# Triggering / routing — does the skill activate on the right prompts, open at
+# Gate 1, and stay out of the way on the wrong ones?
+
+# SHOULD activate, and the first thing it does is check for a session (Gate 1).
+# Nothing about the app is decided, so it should ask, not create.
+- description: "Login request activates asgardeo and opens at Gate 1"
+  vars:
+    request: >-
+      I want users to be able to sign in to my app with Asgardeo. Can you set that up?
+    checks: [noLogin, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the response checks or mentions checking the
+        asg CLI session (asg status) or asks the user to run `asg login`
+        themselves; (2) it does NOT run `asg login` itself and does NOT ask
+        for a client secret; (3) it does NOT create any Asgardeo resource yet,
+        because the app's framework, name and redirect URI are still unknown;
+        (4) it asks the user for those details (or inspects the workspace to
+        find them) rather than inventing them.
+      threshold: 0.7
+
+# SHOULD NOT activate — WSO2 API gateway work belongs to api-publish.
+- description: "Gateway deploy request does NOT activate asgardeo (api-publish territory)"
+  vars:
+    request: >-
+      I have a service on localhost:8080. Set up the WSO2 API Platform gateway
+      on Docker, expose the service through it with the ap CLI, and add rate limiting.
+  assert:
+    - type: not-skill-used
+      value: asgardeo
+
+# SHOULD NOT activate — a generic auth question with no Asgardeo/asg signal.
+- description: "Generic JWT question does NOT activate asgardeo"
+  vars:
+    request: >-
+      Explain the difference between an access token and an ID token in OpenID Connect.
+  assert:
+    - type: not-skill-used
+      value: asgardeo

@@ -1,0 +1,30 @@
+Delete a user by providing an ID or Name.
+			In non-interactive mode, the user ID or name (prefix) is required as a flag 
+			Note: it is required to provide full username in non interactive mode.
+			In interactive mode, the prefix of the username can be used to filter and select the user to delete.
+			ID or username is required in both interactive and non-interactive mode.
+			To avoid any collision, it is recommended to use the user ID in non-interactive mode.
+
+Usage:
+  asg users delete [flags]
+
+Aliases:
+  delete, del
+
+Examples:
+asg users delete --id 123e4567-e89b-12d3-a456-426614174000
+asg users delete --name john.smith -y
+asg users delete --query "userName sw john" -y
+
+Flags:
+  -h, --help           help for delete
+  -i, --id string      User ID
+  -n, --name string    Name (prefix) of the user to delete
+  -q, --query string   Query to filter the user to delete. (Example: --query "username sw test" or --query "username co 'admin'")
+  -y, --yes            confirm the deletion automatically
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

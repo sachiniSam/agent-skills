@@ -1,0 +1,25 @@
+Open application settings in browser
+In interactive mode, you can select the application to open settings for from the list of applications
+In non-interactive mode, It is assumed that opening browser is not possible, hence it will return an error
+
+Usage:
+  asg apps settings [flags]
+
+Examples:
+asg apps settings --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg apps settings --name web-portal
+asg apps settings --query "name sw web"
+asg apps settings --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 --tab info
+
+Flags:
+  -h, --help           help for settings
+  -i, --id string      Application ID
+  -n, --name string    Application name prefix
+  -q, --query string   Filter query to resolve the application
+      --tab string     Tab to open (default "general")
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

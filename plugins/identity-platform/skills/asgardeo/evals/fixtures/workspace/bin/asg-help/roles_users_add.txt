@@ -1,0 +1,29 @@
+Add one or more users to a specified role.
+
+Usage:
+  asg roles users add [flags]
+
+Examples:
+asg roles users add --id 660e8400-e29b-41d4-a716-446655440000 --user-id 123e4567-e89b-12d3-a456-426614174000
+asg roles users add --name Admin --user-id 123e4567-e89b-12d3-a456-426614174000 --user-id 223e4567-e89b-12d3-a456-426614174001
+asg roles users add --query "displayName sw Admin" --users @users.json
+
+Flags:
+  -h, --help              help for add
+  -i, --id string         ID of the role to add users to
+  -n, --name string       Name of the role to add users to
+  -q, --query string      Search query to find the role to add users to
+  -u, --user-id strings   List of user IDs to add to the role (can be provided in multiple -u <id1> -u <id2>)
+      --users string      JSON string or @<file-path> for users.
+                          Structure:
+                          [
+                            { "value":"user_id_1"},
+                            { "value":"user_id_2"}
+                          ]
+  -y, --yes               confirm automatically (no prompt)
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

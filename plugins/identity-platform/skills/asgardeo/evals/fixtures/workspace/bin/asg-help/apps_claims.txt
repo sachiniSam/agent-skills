@@ -1,0 +1,26 @@
+View or update the claims (user attributes) an application requests from Asgardeo.
+Without --add/--remove the current claim configuration is shown.
+Use --add/--remove with claim URIs such as http://wso2.org/claims/roles to change the requested claims
+
+Usage:
+  asg apps claims [flags]
+
+Examples:
+asg apps claims --id 123e4567-e89b-12d3-a456-426614174000
+asg apps claims --name MyApp --add http://wso2.org/claims/roles -y
+asg apps claims --name MyApp --add http://wso2.org/claims/emailaddress --remove http://wso2.org/claims/username -y
+
+Flags:
+  -a, --add strings      Claim URIs to add to the requested claims
+  -h, --help             help for claims
+  -i, --id string        ID of the application
+  -n, --name string      Name of the application
+  -q, --query string     Query to filter the application
+  -r, --remove strings   Claim URIs to remove from the requested claims
+  -y, --yes              Skip the confirmation prompt
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

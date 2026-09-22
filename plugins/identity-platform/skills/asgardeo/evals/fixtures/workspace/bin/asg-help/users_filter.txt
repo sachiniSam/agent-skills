@@ -1,0 +1,22 @@
+Filter users in your organization based on specific SCIM2 attributes.
+You can specify the filter query, starting index, maximum count, and which attributes to return.
+
+Usage:
+  asg users filter [flags]
+
+Examples:
+asg users filter --query "userName eq testuser"
+asg users filter --query "userName eq testuser" --count 5
+
+Flags:
+      --attributes string   Attributes to return (comma separated)
+  -c, --count string        Limit the number of results (count) of results per page (default "10")
+  -h, --help                help for filter
+  -q, --query string        The expression used for filtering. Supported filters are 'Ew', 'Eq', 'Co', 'Sw', 'Ne' and 'and'. Example: 'userName eq testuser' or 'userName ew testuser' or 'userName sw testuser'
+      --start string        Start index
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

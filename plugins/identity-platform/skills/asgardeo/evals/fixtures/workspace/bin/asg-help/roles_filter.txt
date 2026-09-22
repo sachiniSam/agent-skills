@@ -1,0 +1,21 @@
+Filter roles in your Asgardeo tenant based on specific conditions.
+
+Usage:
+  asg roles filter [flags]
+
+Examples:
+asg roles filter --query "displayName eq Admin" --count 10
+asg roles filter --query "displayName sw App" --start 1 --count 5
+
+Flags:
+      --attributes string   Attributes to return (comma separated)
+  -c, --count string        Limit the number of results (count) of results (default "10")
+  -h, --help                help for filter
+  -q, --query string        The expression used for filtering. Supported filters are 'Ew', 'Eq', 'Co', 'Sw', 'Ne' and 'and'. Example: 'displayName eq testgroup' or 'displayName ew testgroup' or 'displayName sw testgroup'
+      --start string        Start index
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

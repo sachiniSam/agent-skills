@@ -1,0 +1,25 @@
+View an existing application from your organization
+In interactive mode, you can select the application to view from the list of applications
+In non-interactive mode, you need to provide the application ID
+
+The application details will be printed in the terminal in the configured format (json|yaml)
+
+Usage:
+  asg apps view [flags]
+
+Examples:
+asg apps view --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg apps view --name web-portal
+asg apps view --query "name sw web"
+
+Flags:
+  -h, --help           help for view
+  -i, --id string      Application ID
+  -n, --name string    Application name prefix
+  -q, --query string   Filter query to resolve the application
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

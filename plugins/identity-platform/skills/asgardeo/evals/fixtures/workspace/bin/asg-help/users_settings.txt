@@ -1,0 +1,22 @@
+Open the Asgardeo Console in your default web browser to view or configure the settings for a specific user.
+This command requires an interactive environment and cannot be run in non-interactive mode.
+
+Usage:
+  asg users settings [flags]
+
+Examples:
+asg users settings --id 123e4567-e89b-12d3-a456-426614174000
+asg users settings --name john
+asg users settings --query "userName sw john"
+
+Flags:
+  -h, --help           help for settings
+  -i, --id string      User ID
+  -n, --name string    Name (prefix) of the user to open settings for
+  -q, --query string   Query to filter the user to open settings for. (Example: --query "username sw test" or --query "username co 'admin'")
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

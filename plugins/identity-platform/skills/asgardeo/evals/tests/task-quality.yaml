@@ -1,0 +1,392 @@
+# Task quality — one scenario per SDK row in references/sdk-integration.md,
+# plus the RBAC, agent-identity and MCP tracks.
+#
+# The skill is conversation-gated (Gate 2 asks, then waits), so each prompt
+# carries the answers the skill would ask for and approves the plan up front.
+# The stub `asg` on PATH returns realistic IDs; assert/asg-checks.js inspects
+# the commands run and the files written. One rubric covers the holistic call.
+#
+# Fixture apps live under fixtures/workspace/apps/<name>. `npm run reset`
+# restores them after a run.
+
+# ---------------------------------------------------------------- Track A ---
+
+- description: "A/React (Vite): spa app, @asgardeo/react wired with real clientId + baseUrl"
+  vars:
+    request: >-
+      My React app (Vite) is at ./apps/react-vite. Set up Asgardeo login for it:
+      register what's needed and wire sign-in/sign-out into the code.
+      Decisions, so you don't need to ask: call the app "orders-web", the dev URL is
+      http://localhost:5173, there's no deployed URL yet, and no backend reads the
+      tokens. I approve the plan in advance — go end to end, including a test user.
+      Don't run npm install; just add the dependency to package.json.
+    expect: { appDir: apps/react-vite, appType: spa, package: "@asgardeo/react", redirect: "http://localhost:5173" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, packageAdded, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) an AsgardeoProvider (from @asgardeo/react) wraps
+        the app with clientId and baseUrl taken from the CLI output, not placeholders;
+        (2) sign-in and sign-out controls are present (SignInButton/SignOutButton or
+        useAsgardeo); (3) the UI does not show the signed-out branch while the SDK is
+        still loading (uses <Loading>, isLoading or isInitialized); (4) the reply
+        tells the user how to try signing in and gives the test user's credentials
+        once; (5) the reply offers role-based gating as a next step or otherwise
+        ends with what to do next.
+      threshold: 0.7
+
+- description: "A/Next.js: oidc app, @asgardeo/nextjs, secret read from Console not chat"
+  vars:
+    request: >-
+      Add Asgardeo login to my Next.js app at ./apps/nextjs (App Router).
+      Decisions: name it "orders-portal", dev URL http://localhost:3000, no
+      production URL yet. I approve the plan — go ahead end to end with a test user.
+      Don't run npm install; add the dependency to package.json.
+    expect: { appDir: apps/nextjs, appType: oidc, package: "@asgardeo/nextjs", redirect: "http://localhost:3000" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, packageAdded, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the app is registered as a confidential OIDC app
+        and the Next.js SDK is wired (provider/middleware per the Asgardeo Next.js
+        quickstart) with the real clientId and baseUrl; (2) the client secret is
+        NOT printed, guessed or asked for in chat — the user is told to read it from
+        the Console (asg apps settings / Console link) and put it in an env file;
+        (3) sign-in and sign-out are reachable from the UI; (4) the reply explains
+        how to verify login with the test user.
+      threshold: 0.7
+
+- description: "A/Vue: spa app, @asgardeo/vue, three-state auth UI"
+  vars:
+    request: >-
+      Add Asgardeo login to the Vue 3 app at ./apps/vue. Decisions: name
+      "orders-vue", dev URL http://localhost:5173, no production URL, no backend
+      reads tokens. Plan approved — do it end to end with a test user. No npm install.
+    expect: { appDir: apps/vue, appType: spa, package: "@asgardeo/vue", redirect: "http://localhost:5173" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, packageAdded, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the Vue SDK plugin/provider is installed in
+        main.ts with real clientId and baseUrl; (2) sign-in/sign-out are wired in a
+        component; (3) the signed-out UI is not rendered while the SDK is still
+        resolving the session; (4) the reply tells the user how to test with the
+        created user.
+      threshold: 0.7
+
+- description: "A/Angular: spa app, Angular quickstart followed"
+  vars:
+    request: >-
+      Add Asgardeo login to the Angular app at ./apps/angular. Decisions: name
+      "orders-angular", dev URL http://localhost:4200, no production URL, no backend
+      reads tokens. Plan approved — go end to end with a test user. No npm install.
+    expect: { appDir: apps/angular, appType: spa, redirect: "http://localhost:4200" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the agent fetched or followed the Asgardeo
+        Angular quickstart rather than inventing an SDK API; (2) an Asgardeo/OIDC
+        auth package is added and configured with the real clientId, baseUrl and
+        redirect http://localhost:4200; (3) sign-in/sign-out are wired into the
+        component; (4) the reply explains how to verify with the test user.
+      threshold: 0.7
+
+- description: "A/Nuxt: spa app, Nuxt quickstart followed"
+  vars:
+    request: >-
+      Add Asgardeo login to the Nuxt 3 app at ./apps/nuxt (it runs client-side,
+      ssr is off). Decisions: name "orders-nuxt", dev URL http://localhost:3000,
+      no production URL, no backend reads tokens. Plan approved — go end to end
+      with a test user. No npm install.
+    expect: { appDir: apps/nuxt, appType: spa, redirect: "http://localhost:3000" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the agent followed the Asgardeo Nuxt quickstart
+        (module or plugin) rather than inventing an API; (2) the config carries the
+        real clientId, baseUrl and redirect; (3) sign-in/sign-out are wired; (4) the
+        reply explains how to verify with the test user.
+      threshold: 0.7
+
+- description: "A/Vanilla JS: spa app, @asgardeo/auth-spa, signIn on the redirect page"
+  vars:
+    request: >-
+      The static site at ./apps/vanilla-js (Vite, plain JS, no framework) needs
+      Asgardeo login behind its Sign in / Sign out buttons. Decisions: name
+      "orders-static", dev URL http://localhost:5173, no production URL, no backend
+      reads tokens. Plan approved — go end to end with a test user. No npm install.
+    expect: { appDir: apps/vanilla-js, appType: spa, package: "@asgardeo/auth-spa", redirect: "http://localhost:5173" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, packageAdded, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) @asgardeo/auth-spa is initialised with the real
+        clientId, baseUrl and signInRedirectURL; (2) the buttons call signIn/signOut;
+        (3) the page handles the redirect back (signIn is invoked on load, or
+        isAuthenticated is checked) and hides the signed-out UI until that resolves;
+        (4) the reply explains how to verify with the test user.
+      threshold: 0.7
+
+- description: "A/Spring Boot: oidc app, Spring Security OAuth2 client, secret via env"
+  vars:
+    request: >-
+      Add Asgardeo login to the Spring Boot app at ./apps/spring-boot. Decisions:
+      name "orders-spring", it runs at http://localhost:8080, no production URL.
+      Plan approved — go end to end with a test user. Don't run Maven.
+    expect: { appDir: apps/spring-boot, appType: oidc, redirect: "http://localhost:8080" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the app is registered as oidc with a redirect
+        URI matching what Spring Security will use (e.g.
+        http://localhost:8080/login/oauth2/code/...) and that URI is consistent
+        between the CLI command and the Spring config; (2) spring-boot-starter-
+        oauth2-client (or equivalent) is added and configured with the real
+        client-id and issuer/base URL; (3) the client secret is referenced from an
+        environment variable, never written literally or shown in chat; (4) the
+        reply explains how to verify with the test user.
+      threshold: 0.7
+
+- description: "A/Express: oidc app, passport-asgardeo, secret via env"
+  vars:
+    request: >-
+      Add Asgardeo login to the Express app at ./apps/express (server-rendered,
+      sessions already set up). Decisions: name "orders-express", it runs at
+      http://localhost:3000, no production URL. Plan approved — go end to end with
+      a test user. No npm install; add dependencies to package.json.
+    expect: { appDir: apps/express, appType: oidc, package: "@asgardeo/", redirect: "http://localhost:3000" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, packageAdded, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the app is registered as oidc and the redirect
+        URI finally registered on the app matches the callback path the SDK will
+        use in server.js; (2) an Asgardeo Express SDK (@asgardeo/passport-asgardeo
+        or @asgardeo/auth-express) is configured with the real clientId and baseUrl
+        (literal or via env values the reply tells the user to set from the CLI
+        output), and the client secret comes from an env var, never a literal or
+        chat; (3) sign-in, the callback and sign-out are reachable (explicit routes
+        or SDK-provided ones); (4) the reply explains how to verify with the test user.
+      threshold: 0.7
+
+- description: "A/.NET: oidc app, standard OIDC middleware, secret via user-secrets/env"
+  vars:
+    request: >-
+      Add Asgardeo login to the ASP.NET Core Razor Pages app at ./apps/dotnet.
+      Decisions: name "orders-dotnet", it runs at https://localhost:5001, no
+      production URL. Plan approved — go end to end with a test user. Don't run dotnet.
+    expect: { appDir: apps/dotnet, appType: oidc, redirect: "https://localhost:5001" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the app is registered as oidc with a redirect URI
+        consistent with the OIDC middleware's CallbackPath; (2) Program.cs adds
+        cookie + OpenIdConnect authentication with the real ClientId and Authority/
+        base URL; (3) the client secret is read from configuration/user-secrets/env,
+        never a literal in appsettings or chat; (4) the reply explains how to verify
+        with the test user.
+      threshold: 0.7
+
+- description: "A/Flutter: mobile app type, custom-scheme redirect"
+  vars:
+    request: >-
+      Add Asgardeo login to the Flutter app at ./apps/flutter. Decisions: name
+      "orders-mobile", use the redirect scheme com.example.orders://login-callback,
+      no backend reads tokens. Plan approved — go end to end with a test user.
+      Don't run flutter or pub.
+    expect: { appDir: apps/flutter, appType: mobile, redirect: "com.example.orders://login-callback" }
+    checks: [statusFirst, noLogin, appCreated, clientIdWired, baseUrlWired, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the app is registered with type mobile and the
+        custom-scheme redirect; (2) the agent followed the Asgardeo Flutter tutorial
+        (e.g. flutter_appauth or the Asgardeo Flutter SDK) rather than inventing an
+        API, with the real clientId and base URL in the Dart config; (3) it notes
+        the platform step needed for the custom scheme (Android intent filter /
+        iOS URL scheme); (4) the reply explains how to verify with the test user.
+      threshold: 0.7
+
+# ---------------------------------------------------------------- Track B ---
+
+- description: "B/RBAC: API scopes, app authorized, roles, JWT tokens, Express check"
+  vars:
+    request: >-
+      My Express API at ./apps/orders-api (http://localhost:4000) has GET /orders,
+      POST /orders and DELETE /orders/:id. Lock it down with Asgardeo so any
+      signed-in user can list orders but only order admins can create or delete.
+      The frontend calling it is already registered in Asgardeo as the spa app
+      "orders-web" (create it first if it isn't there — redirect
+      http://localhost:5173). Decisions: scopes read:orders and write:orders,
+      roles orders-viewer and orders-admin, application-audience roles. Plan
+      approved — go end to end and create two test users, one per role. No npm install.
+    expect: { appDir: apps/orders-api, scopes: ["read:orders", "write:orders"], jwt: true }
+    checks: [statusFirst, noLogin, rbacPipeline, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the pipeline runs in order — API resource with
+        both scopes, app authorized for them, roles created carrying the scopes,
+        users assigned; (2) the app is switched to (or created with) JWT access
+        tokens; (3) server.js validates the bearer token and checks the scope claim per
+        route (read:orders on GET, write:orders on POST/DELETE) — not a role name
+        check in the SPA; (4) scopes and roles are shown as tables; (5) the reply
+        says a newly assigned role appears only after the user logs in again, and
+        describes the two-user proof (admin can, viewer can't).
+      threshold: 0.7
+
+# ---------------------------------------------------------------- Track E ---
+
+- description: "E/Agent identity: agent acting on behalf of a user, secret via --env-file"
+  vars:
+    request: >-
+      The Node agent at ./apps/orders-assistant answers questions about a user's
+      orders by calling my Orders API (http://localhost:4000, scopes read:orders and
+      write:orders, already registered in Asgardeo as "Orders API" — register it if
+      the CLI says it doesn't exist). Give the agent an Asgardeo identity. Decisions:
+      it acts on behalf of the signed-in user, name it "orders-assistant", role
+      "Orders Assistant Access" with both scopes, redirect
+      http://localhost:3001/callback, and write the credentials to
+      ./apps/orders-assistant/.env. Plan approved — go end to end. No npm install.
+    expect: { appDir: apps/orders-assistant, allowUserLogin: true }
+    checks: [statusFirst, noLogin, envIgnored, agentCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the agent checked that .env is gitignored
+        (git check-ignore, a Read/cat of .gitignore, or an edit adding it in the
+        trace) before letting the CLI write credentials with --env-file, and never
+        printed or read the secret; (2) `asg agents create --allow-user-login` was used and
+        the agent got an Application-audience role carrying the scopes; (3) the
+        token flow in agent.js uses the Asgardeo SDK for the on-behalf-of exchange
+        (not a hand-rolled OAuth flow) and the user signs in through the browser;
+        (4) the reply gives the user an exact command to prove it and what they
+        should see, instead of running it.
+      threshold: 0.7
+
+# ---------------------------------------------------------------- Track F ---
+
+- description: "F/MCP server: mcp resource + client, roles, mcp-express protect, per-tool scope"
+  vars:
+    request: >-
+      My Express MCP server at ./apps/orders-mcp runs at http://localhost:3000/mcp
+      with tools list_orders and create_order. Anyone can call it. Lock it down
+      with Asgardeo so users must log in and only order admins can call
+      create_order. Decisions: scopes orders:read (list_orders) and orders:write
+      (create_order), roles orders-viewer and orders-admin, the client is MCP
+      Inspector (redirect http://localhost:6274/oauth/callback). Plan approved —
+      go end to end with a test user per role. No npm install.
+    expect: { appDir: apps/orders-mcp, scopes: ["orders:read", "orders:write"], identifier: "http://localhost:3000/mcp", mcp: true }
+    checks: [statusFirst, noLogin, rbacPipeline, mcpProtected, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the MCP server is registered with `asg apis
+        create --type mcp` using the server URL as identifier, and a client app with
+        `--type mcp` and the Inspector redirect; (2) the client is authorized for the
+        scopes and roles carry them; (3) server.js uses @asgardeo/mcp-express
+        (router + protect) with the base URL and resource identifier, plus an
+        explicit orders:write check inside create_order; (4) the reply ends with the
+        MCP Inspector steps and expected results (401 without token, tools after
+        login, create_order refused for the viewer) rather than running them.
+      threshold: 0.7
+
+# ---------------------------------------------------------------- Track C ---
+
+- description: "C/Manage: create a user, stop before any delete without confirmation"
+  vars:
+    request: >-
+      Using the asg CLI, add a user jane.doe@example.com (Jane Doe) to my Asgardeo
+      org with a temporary password she can use right away, then tell me how to
+      remove her later. Go ahead.
+    checks: [statusFirst, noLogin, testUserCreated, noSecretLeak, consoleLink, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the user is created with --password and
+        --set-password and the password is reported once; (2) the reply includes
+        the new user's ID and a Console link; (3) the delete is described as a
+        command the user can run later (or offered), NOT executed now.
+      threshold: 0.7
+
+# ---------------------------------------------------------------- Track D ---
+
+- description: "D/Troubleshoot: 403 diagnosed as a permission gap, not a login problem"
+  vars:
+    request: >-
+      `asg users list` just failed with a 403 even though `asg status` says I'm
+      authenticated. What's wrong and what do I do?
+    checks: [noLogin, noDelete]
+  assert:
+    - type: skill-used
+      value: asgardeo
+    - type: javascript
+      value: file://assert/asg-checks.js
+    - type: llm-rubric
+      value: >-
+        PASS only if ALL hold: (1) the response says a 403 is a missing permission
+        on the signed-in user's role, not a session problem, and that re-login
+        won't fix it; (2) it points at the internal user-management scope or
+        Console role fix (or the CLI log for the parsed API error); (3) it does
+        NOT tell the user to log in again as the fix and does not run `asg login`.
+      threshold: 0.7

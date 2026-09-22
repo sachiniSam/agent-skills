@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+
+# Eval suite for the "asgardeo" skill (Layer 1: stubbed CLI). The agent SDK
+# discovers the skill from the fixture workspace and runs it as a real skill
+# (see EVALS.md at the repo root). A stub `asg` on PATH (fixtures/workspace/bin)
+# replaces the real CLI, so no org, login or credentials are needed; assertions
+# inspect the commands the agent ran and the files it wrote.
+#
+# Run from this directory:
+#   npm install
+#   npm run eval          # puts the stub on PATH, then promptfoo eval
+#   npm run view
+#   npm run reset         # restore the fixture apps after a run
+#
+# Requires Node >= 22.22 and `claude` logged in (or ANTHROPIC_API_KEY).
+# After editing the skill, refresh the fixture copy from the repo root:
+#   node tools/sync-fixtures.js identity-platform asgardeo
+
+description: "asgardeo skill evals (stubbed asg CLI)"
+
+tracing:
+  enabled: true
+  otlp:
+    http:
+      enabled: true
+      port: 4318
+      host: 127.0.0.1
+      acceptFormats: ["json", "protobuf"]
+
+prompts:
+  - "{{request}}"
+
+providers:
+  - id: anthropic:claude-agent-sdk
+    label: asgardeo
+    config:
+      model: claude-sonnet-4-6
+      apiKeyRequired: false        # reuse the Claude Code login; no API key needed
+      working_dir: ./fixtures/workspace
+      setting_sources: ["project"] # discover .claude/skills/
+      skills: ["asgardeo"]         # also auto-allows the Skill tool
+      permission_mode: default
+      # Bash runs the (stubbed) asg CLI; WebFetch reads the docs quickstarts;
+      # Write/Edit wire the SDK into the fixture apps.
+      append_allowed_tools: ["Read", "Grep", "Glob", "Bash", "Write", "Edit", "WebFetch"]
+      max_turns: 80
+      max_budget_usd: 4
+
+defaultTest:
+  options:
+    disableVarExpansion: true
+    # Append the asg commands run and files written to the reply, so rubric
+    # graders can see tool-level behaviour. asg-checks.js ignores the trace.
+    transform: file://assert/trace.js
+    provider:
+      id: anthropic:claude-agent-sdk
+      label: grader
+      config:
+        model: claude-sonnet-4-6
+        apiKeyRequired: false
+
+tests:
+  - file://tests/triggering.yaml
+  - file://tests/task-quality.yaml

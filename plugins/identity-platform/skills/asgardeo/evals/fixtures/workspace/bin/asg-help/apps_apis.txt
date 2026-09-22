@@ -1,0 +1,29 @@
+Manage which API resources an application may request scopes from.
+Authorizing an API lets the application ask for that API's scopes at login; the scopes a user actually receives still depend on their roles.
+
+Usage:
+  asg apps apis [flags]
+  asg apps apis [command]
+
+Aliases:
+  apis, api, api-resource, api-resources
+
+Examples:
+asg apps apis list --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4
+asg apps apis add --id 7a4d5f50-cf2c-4de7-8b0f-b7f6f82c9ac4 --api-id 99e70d2c-6d8b-40d2-a716-446655440000 --scopes read:orders -y
+
+Available Commands:
+  add         Authorize an API resource for the application
+  list        List the API resources the application is authorized for
+  remove      Revoke an API resource authorization
+
+Flags:
+  -h, --help   help for apis
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output
+
+Use "asg apps apis [command] --help" for more information about a command.

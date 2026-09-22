@@ -1,0 +1,21 @@
+Command "list" is deprecated, This command only fetches a limited number of agents.
+Use 'asg agents filter' instead
+List all agents in your Asgardeo tenant. This command fetches a list of agents from the tenant.
+
+Usage:
+  asg agents list [flags]
+
+Aliases:
+  list, ls
+
+Examples:
+asg agents list
+
+Flags:
+  -h, --help   help for list
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

@@ -1,0 +1,6 @@
+node_modules/
+output.json
+.promptfoo/
+fixtures/workspace/.asg-stub/
+fixtures/workspace/apps/**/node_modules/
+fixtures/workspace/apps/**/.env

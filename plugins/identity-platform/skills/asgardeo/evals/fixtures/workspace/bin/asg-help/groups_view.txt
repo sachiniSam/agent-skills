@@ -1,0 +1,25 @@
+View an existing group from your organization
+In interactive mode, you can select the group to view from the list of groups
+In non-interactive mode, you need to provide the group ID
+
+The group details will be printed in the terminal in the configured format (json|yaml)
+
+Usage:
+  asg groups view [flags]
+
+Examples:
+asg groups view --id 550e8400-e29b-41d4-a716-446655440000
+asg groups view --name engineering
+asg groups view --query "displayName sw eng"
+
+Flags:
+  -h, --help           help for view
+  -i, --id string      Group ID
+  -n, --name string    Group Name (prefix) to filter groups
+  -q, --query string   SCIM2 filter query to filter groups
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

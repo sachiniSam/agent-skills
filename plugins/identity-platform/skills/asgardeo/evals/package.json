@@ -1,0 +1,15 @@
+{
+  "name": "asgardeo-evals",
+  "private": true,
+  "description": "Promptfoo eval suite for the asgardeo skill (Layer 1: stubbed asg CLI).",
+  "scripts": {
+    "eval": "PATH=\"$PWD/fixtures/workspace/bin:$PATH\" npx promptfoo@latest eval -c promptfooconfig.yaml -o output.json --no-cache --no-share -j 2",
+    "eval:one": "PATH=\"$PWD/fixtures/workspace/bin:$PATH\" npx promptfoo@latest eval -c promptfooconfig.yaml -o output.json --no-cache --no-share -j 1 --filter-pattern",
+    "view": "npx promptfoo@latest view",
+    "validate": "npx promptfoo@latest validate config -c promptfooconfig.yaml",
+    "reset": "rm -rf fixtures/workspace/.asg-stub && (git ls-files --error-unmatch fixtures/workspace/apps >/dev/null 2>&1 && git checkout -- fixtures/workspace/apps && git clean -fdq fixtures/workspace/apps || echo 'fixtures not committed yet: restore apps/ by hand')"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.195"
+  }
+}

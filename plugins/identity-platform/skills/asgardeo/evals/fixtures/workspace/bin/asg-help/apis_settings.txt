@@ -1,0 +1,22 @@
+Open the API resource settings page in the default web browser.
+Use this command to quickly access the settings of your API resources in Asgardeo. It will open the API resource settings page in your default web browser, allowing you to manage configurations, view details, and make necessary adjustments with ease.
+
+Usage:
+  asg apis settings [flags]
+
+Examples:
+asg apis settings --id 77e7ee21-da02-409e-bf8a-28f3bb186814
+asg apis settings --name webhook
+asg apis settings --query "name sw billing"
+
+Flags:
+  -h, --help           help for settings
+  -i, --id string      ID of the API resource to open settings for
+  -n, --name string    Name prefix of the API resource to search for and open settings for
+  -q, --query string   Query to filter the API resource to open settings for. (Example: --query "name sw test" or --query "name co 'web'")
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

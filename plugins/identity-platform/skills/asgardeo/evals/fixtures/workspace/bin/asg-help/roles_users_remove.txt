@@ -1,0 +1,29 @@
+Remove one or more users from a specified role.
+
+Usage:
+  asg roles users remove [flags]
+
+Examples:
+asg roles users remove --id 660e8400-e29b-41d4-a716-446655440000 --user-id 123e4567-e89b-12d3-a456-426614174000
+asg roles users remove --name Admin --user-id 123e4567-e89b-12d3-a456-426614174000
+asg roles users remove --query "displayName sw Admin" --users @users.json
+
+Flags:
+  -h, --help              help for remove
+  -i, --id string         ID of the role to remove users from
+  -n, --name string       Name of the role to remove users from
+  -q, --query string      Search query to find the role to remove users from
+  -u, --user-id strings   List of user IDs to remove from the role (can be provided in multiple -u <id1> -u <id2>)
+      --users string      JSON string or @<file-path> for users to remove.
+                          Structure:
+                          [
+                            { "value":"user_id_1"},
+                            { "value":"user_id_2"}
+                          ]
+  -y, --yes               confirm automatically (no prompt)
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

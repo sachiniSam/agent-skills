@@ -1,0 +1,23 @@
+View the complete details of a specific agent by providing their ID or name prefix.
+In interactive mode, if no ID is provided, you can select from a list of agents.
+You can use the -n flag to provide the prefix of the agent name to search for the agent and select the agent from the list in the interactive mode.
+
+Usage:
+  asg agents view [flags]
+
+Examples:
+asg agents view --id 123e4567-e89b-12d3-a456-426614174000
+asg agents view --name my-agent
+asg agents view --query "name sw my-agent"
+
+Flags:
+  -h, --help           help for view
+  -i, --id string      Agent ID
+  -n, --name string    Agent Name (prefix) to filter agents
+  -q, --query string   SCIM2 filter query to filter agents
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

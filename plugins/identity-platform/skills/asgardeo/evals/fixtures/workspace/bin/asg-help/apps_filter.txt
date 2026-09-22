@@ -1,0 +1,19 @@
+Filter applications dynamically based on advanced query expressions such as 'name sw test' (starts with), 'name eq test' (equals), combined with limit constraints.
+
+Usage:
+  asg apps filter [flags]
+
+Examples:
+asg apps filter --query "name eq 'Web Portal'" --count 5
+asg apps filter --query "type eq 'oidc'" --count 5 --no-interactive
+
+Flags:
+  -c, --count string   Limit the number of results (default "10")
+  -h, --help           help for filter
+  -q, --query string   The expression used for filtering. Supported filters are 'Ew', 'Eq', 'Co', 'Sw', 'Ne' and 'and'. Example: 'name eq testapp' or 'name ew testapp' or 'name sw testapp'
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

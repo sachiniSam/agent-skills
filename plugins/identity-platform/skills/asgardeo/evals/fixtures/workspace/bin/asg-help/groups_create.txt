@@ -1,0 +1,21 @@
+Create a new group by providing the group name and optionally a description
+
+Usage:
+  asg groups create [flags]
+
+Examples:
+asg groups create --name Engineering --user-store DEFAULT
+asg groups create --name Platform --members @members.json
+
+Flags:
+  -h, --help                help for create
+      --members string      Members to add to the group in JSON format. Ex: --members '{"members": [{"value": "<user-id>"}, {"value": "<user-id>"}]}'
+  -n, --name string         Name of the group
+      --user-store string   Userstore of the group
+  -y, --yes                 Skip the prompt asking whether to add members to the new group
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output

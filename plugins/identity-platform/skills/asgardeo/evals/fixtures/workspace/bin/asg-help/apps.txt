@@ -1,0 +1,46 @@
+Manage your applications in Asgardeo
+
+Use this command to manage your applications in Asgardeo
+
+Available subcommands:
+  create  Create a new application
+  update  Update an existing application
+  view    View an existing application
+  delete  Delete an application
+  list    List all applications
+  settings  Manage application settings in browser
+
+Usage:
+  asg apps [flags]
+  asg apps [command]
+
+Aliases:
+  apps, app, application, applications
+
+Examples:
+  asg apps list
+  asg apps --help
+
+Available Commands:
+  apis        Manage the API resources an application is authorized for
+  claims      View or update the requested claims (user attributes) of an application
+  create      Create an application
+  delete      Delete an application
+  export      Export an application's configuration to a file
+  filter      Filter applications
+  list        List all applications
+  protocol    View or update an application's inbound protocol configuration
+  settings    Open application settings in browser
+  update      Update an application
+  view        View an application
+
+Flags:
+  -h, --help   help for apps
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output
+
+Use "asg apps [command] --help" for more information about a command.

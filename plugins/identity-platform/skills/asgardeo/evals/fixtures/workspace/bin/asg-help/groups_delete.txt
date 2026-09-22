@@ -1,0 +1,25 @@
+Delete an existing group from your organization
+In interactive mode, you can select the group to delete from the list of groups
+In non-interactive mode, you need to provide the group ID or name or a query to filter groups
+
+Usage:
+  asg groups delete [flags]
+
+Examples:
+asg groups delete -i 550e8400-e29b-41d4-a716-446655440000
+asg groups delete -n engineering
+asg groups delete -q "displayName sw admin"
+asg groups delete -i 550e8400-e29b-41d4-a716-446655440000 -y
+
+Flags:
+  -h, --help           help for delete
+  -i, --id string      ID of the group to delete
+  -n, --name string    Name prefix of the group to delete
+  -q, --query string   Query to filter the group to delete. (Example: --query "name sw test" or --query "name co 'web'")
+  -y, --yes            Confirm group deletion without interactive prompt
+
+Global Flags:
+      --format string    output format (json|yaml)
+      --no-color         Disable color output
+  -N, --no-interactive   Disable interactivity
+  -v, --verbose          Enable verbose output
