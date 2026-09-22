@@ -1,5 +1,5 @@
 {
-  "name": "wso2-agent-skills-preview",
+  "name": "wso2-agent-skills",
   "owner": {
     "name": "WSO2",
     "url": "https://github.com/wso2"
@@ -13,21 +13,57 @@
       "source": "./plugins/api-platform",
       "description": "Skills for the WSO2 API Platform — design, assess, and fix OpenAPI specs for AI agent readiness, security, and design quality; then set up, publish, and manage APIs through the WSO2 API Gateway using the ap CLI.",
       "category": "development",
-      "tags": ["wso2", "api-platform", "openapi", "api-gateway", "api-design"]
+      "tags": [
+        "wso2",
+        "api-platform",
+        "openapi",
+        "api-gateway",
+        "api-design"
+      ]
     },
     {
       "name": "agent-manager",
       "source": "./plugins/agent-manager",
       "description": "Skill for driving the WSO2 agent-manager lifecycle through the amctl CLI — install, log in, create/deploy agents, watch builds, fetch logs and metrics, and triage runtime issues.",
       "category": "development",
-      "tags": ["wso2", "agent-manager", "amctl", "ai-agents", "deployment"]
+      "tags": [
+        "wso2",
+        "agent-manager",
+        "amctl",
+        "ai-agents",
+        "deployment"
+      ]
     },
     {
       "name": "identity-platform",
       "source": "./plugins/identity-platform",
       "description": "Skill for managing the WSO2 Identity Platform (Asgardeo) through the asg CLI — install and authenticate, manage applications, users, groups, roles, identity providers, API resources, scopes, branding, organizations, and agents, then integrate the Asgardeo SDK into your app.",
       "category": "development",
-      "tags": ["wso2", "identity-platform", "asgardeo", "authentication", "oidc"]
+      "tags": [
+        "wso2",
+        "identity-platform",
+        "asgardeo",
+        "authentication",
+        "oidc"
+      ]
+    },
+    {
+      "name": "integrator",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ballerina-platform/skills.git",
+        "ref": "main"
+      },
+      "displayName": "WSO2 Integrator",
+      "description": "Skills for WSO2 Integrator — write services and integrations in Ballerina, discover connectors and libraries from Ballerina Central, and build, run, and test projects, plus language-server code intelligence for .bal files.",
+      "category": "development",
+      "tags": [
+        "wso2",
+        "integrator",
+        "ballerina",
+        "integration",
+        "cloud-native"
+      ]
     }
   ]
 }
