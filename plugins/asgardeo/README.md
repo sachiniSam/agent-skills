@@ -1,6 +1,6 @@
-# identity-platform Plugin
+# asgardeo Plugin
 
-Agent skill for the WSO2 Identity Platform (Asgardeo).
+Agent skill for Asgardeo.
 
 ## Skills
 

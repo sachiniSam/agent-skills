@@ -35,13 +35,12 @@
       ]
     },
     {
-      "name": "identity-platform",
-      "source": "./plugins/identity-platform",
-      "description": "Skill for managing the WSO2 Identity Platform (Asgardeo) through the asg CLI — install and authenticate, manage applications, users, groups, roles, identity providers, API resources, scopes, branding, organizations, and agents, then integrate the Asgardeo SDK into your app.",
+      "name": "asgardeo",
+      "source": "./plugins/asgardeo",
+      "description": "Skill for managing Asgardeo through the asg CLI — install and authenticate, manage applications, users, groups, roles, identity providers, API resources, scopes, branding, organizations, and agents, then integrate the Asgardeo SDK into your app.",
       "category": "development",
       "tags": [
         "wso2",
-        "identity-platform",
         "asgardeo",
         "authentication",
         "oidc"

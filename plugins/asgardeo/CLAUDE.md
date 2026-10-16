@@ -1,8 +1,8 @@
-# identity-platform Plugin — Agent Conventions
+# asgardeo Plugin — Agent Conventions
 
 ## Skills in this Plugin
 
-- [`skills/asgardeo/`](./skills/asgardeo/SKILL.md) — manage WSO2 Identity Platform (Asgardeo) end-to-end through the `asg` CLI
+- [`skills/asgardeo/`](./skills/asgardeo/SKILL.md) — manage Asgardeo end-to-end through the `asg` CLI
 
 ## asgardeo Skill
 
@@ -40,4 +40,4 @@ Two mandatory **gates** followed by an **intent router** into six tracks:
 
 ## Evals
 
-`skills/asgardeo/evals/` is a promptfoo suite run against a stubbed `asg` CLI on the fixture PATH (no org or credentials needed): 3 triggering tests and 16 task-quality scenarios, one per SDK framework plus tracks B–F. See its README and the repo-level [EVALS.md](../../EVALS.md). After editing the skill, refresh the fixture copy: `node tools/sync-fixtures.js identity-platform asgardeo`.
+`skills/asgardeo/evals/` is a promptfoo suite run against a stubbed `asg` CLI on the fixture PATH (no org or credentials needed): 3 triggering tests and 16 task-quality scenarios, one per SDK framework plus tracks B–F. See its README and the repo-level [EVALS.md](../../EVALS.md). After editing the skill, refresh the fixture copy: `node tools/sync-fixtures.js asgardeo asgardeo`.

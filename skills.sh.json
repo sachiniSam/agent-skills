@@ -11,7 +11,7 @@
       "skills": ["manage-agent"]
     },
     {
-      "title": "Identity Platform",
+      "title": "Asgardeo",
       "description": "Skill for managing Asgardeo identity resources and adding authentication to your apps.",
       "skills": ["asgardeo"]
     },

@@ -38,7 +38,7 @@ function write(rel, content) {
 }
 
 // ---- 1. skill copy --------------------------------------------------------
-const sync = spawnSync('node', [path.join(REPO_ROOT, 'tools', 'sync-fixtures.js'), 'identity-platform', 'asgardeo'], { stdio: 'inherit' });
+const sync = spawnSync('node', [path.join(REPO_ROOT, 'tools', 'sync-fixtures.js'), 'asgardeo', 'asgardeo'], { stdio: 'inherit' });
 if (sync.status !== 0) fail('tools/sync-fixtures.js failed (is this checkout on a branch that has tools/?)');
 
 // ---- 2. sample apps -------------------------------------------------------
