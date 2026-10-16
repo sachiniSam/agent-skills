@@ -38,8 +38,6 @@ function write(rel, content) {
 }
 
 // ---- 1. skill copy --------------------------------------------------------
-// sync-fixtures.js refreshes layouts that exist, so create the Claude layout first.
-fs.mkdirSync(path.join(WS, '.claude', 'skills', 'asgardeo'), { recursive: true });
 const sync = spawnSync('node', [path.join(REPO_ROOT, 'tools', 'sync-fixtures.js'), 'identity-platform', 'asgardeo'], { stdio: 'inherit' });
 if (sync.status !== 0) fail('tools/sync-fixtures.js failed (is this checkout on a branch that has tools/?)');
 

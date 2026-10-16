@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Refresh the skill copies in a skill's eval fixture workspace from the real skill.
+ * Copy the live skill into a skill's eval fixture workspace.
  *
  *   node tools/sync-fixtures.js <plugin> <skill>   # sync one skill
  *   node tools/sync-fixtures.js --all              # sync every skill that has evals/
  *
- * Eval fixtures hold real COPIES (not symlinks) of the skill: Codex's scanner
- * needs real files under .agents/skills/, and copies keep the eval independent
- * of the live skill. Run this after editing a skill so its fixtures stay in sync.
+ * The copies are generated, never committed: anything under a skill's directory
+ * is installed with the skill, so a committed copy would ship a second SKILL.md
+ * to every user. Each suite's `npm run eval` runs this first, and the suite's
+ * .gitignore excludes the copies. They are real files, not symlinks, because
+ * Codex's scanner needs real files under .agents/skills/.
  *
  * Node builtins only — no dependencies.
  */
@@ -17,13 +19,20 @@ const path = require('path');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const SKILL_PARTS = ['SKILL.md', 'references', 'scripts', 'assets'];
+// Provider id in a suite's promptfooconfig*.yaml -> the directory that agent
+// scans for skills. A grader-only provider also gets a copy; it is unused but
+// harmless.
+const LAYOUTS = [
+  ['anthropic:claude-agent-sdk', '.claude'],
+  ['openai:codex-sdk', '.agents'],
+];
 
 function fail(msg) {
   console.error(`error: ${msg}`);
   process.exit(1);
 }
 
-/** Copy SKILL.md + sibling dirs into each fixture layout that exists. Returns count. */
+/** Copy SKILL.md + sibling dirs into the layout of each provider the suite uses. Returns count. */
 function syncSkill(plugin, skill) {
   const skillDir = path.join(REPO_ROOT, 'plugins', plugin, 'skills', skill);
   if (!fs.existsSync(path.join(skillDir, 'SKILL.md'))) {
@@ -31,14 +40,19 @@ function syncSkill(plugin, skill) {
     console.warn(`  (skip) ${plugin}/${skill}: no SKILL.md at plugins/${plugin}/skills/${skill}`);
     return 0;
   }
-  const wsRoot = path.join(skillDir, 'evals', 'fixtures', 'workspace');
-  const layouts = [
-    path.join(wsRoot, '.claude', 'skills', skill),
-    path.join(wsRoot, '.agents', 'skills', skill),
-  ].filter((d) => fs.existsSync(d));
+  const evalsDir = path.join(skillDir, 'evals');
+  const configs = fs.existsSync(evalsDir)
+    ? fs.readdirSync(evalsDir)
+      .filter((f) => /^promptfooconfig.*\.ya?ml$/.test(f))
+      .map((f) => fs.readFileSync(path.join(evalsDir, f), 'utf8'))
+      .join('\n')
+    : '';
+  const layouts = LAYOUTS
+    .filter(([id]) => configs.includes(id))
+    .map(([, dir]) => path.join(evalsDir, 'fixtures', 'workspace', dir, 'skills', skill));
 
   if (!layouts.length) {
-    console.warn(`  (skip) ${plugin}/${skill}: no fixture layouts under evals/fixtures/workspace`);
+    console.warn(`  (skip) ${plugin}/${skill}: no known provider (${LAYOUTS.map(([id]) => id).join(', ')}) in evals/promptfooconfig*.yaml`);
     return 0;
   }
   for (const dest of layouts) {
@@ -92,5 +106,7 @@ if (argv[0] === '--all') {
     fail('plugin and skill must contain only letters, digits, dashes, or underscores');
   }
   console.log(`${plugin}/${skill}:`);
-  syncSkill(plugin, skill);
+  // Fail when nothing was copied, so `npm run eval` stops instead of running
+  // promptfoo against a fixture workspace with no skill in it.
+  if (!syncSkill(plugin, skill)) process.exit(1);
 }

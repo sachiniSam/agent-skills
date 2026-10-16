@@ -1,0 +1,27 @@
+{
+  "name": "healthcare",
+  "version": "0.1.0",
+  "description": "WSO2 Healthcare skills: write services and integrations in Ballerina for healthcare applications, including HL7v2 and FHIR support.",
+  "author": {
+    "name": "WSO2",
+    "url": "https://wso2.com"
+  },
+  "homepage": "https://github.com/wso2/agent-skills",
+  "repository": "https://github.com/wso2/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["healthcare", "migrations", "mirth", "ballerina", "hl7", "hl7v2", "wso2", "integration"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "WSO2 Healthcare",
+    "shortDescription": "Write services and integrations in Ballerina for healthcare applications.",
+    "longDescription": "Skills for building healthcare integrations in Ballerina, with HL7v2 and FHIR support, including migrating channels from existing integration engines (e.g. Mirth Connect) into compilable, idiomatic Ballerina projects with typed stubs generated wherever a translation is ambiguous.",
+    "developerName": "WSO2",
+    "category": "Engineering",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Migrate this Mirth Connect channel.xml to a Ballerina project.",
+      "How do I implement an HL7v2 MLLP listener in Ballerina?",
+      "Translate this Mirth JavaScript transformer to Ballerina."
+    ]
+  }
+}

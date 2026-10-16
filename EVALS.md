@@ -19,15 +19,17 @@ plugins/<plugin>/skills/<skill>/
       triggering.yaml      # does the skill activate on the right prompts?
       task-quality.yaml     # is the skill's output correct?
     fixtures/workspace/      # a self-contained workspace the agent runs in
-      .claude/skills/<skill>/   # Claude discovery path (real copies)
-      .agents/skills/<skill>/   # Codex discovery path (real copies)
-    package.json
+      .claude/skills/<skill>/   # Claude discovery path (generated, gitignored)
+      .agents/skills/<skill>/   # Codex discovery path (generated, gitignored)
+      <sample projects, stubs>  # committed
+    package.json             # `npm run eval` syncs the skill copies, then runs promptfoo
+    .gitignore
     README.md
 ```
 
 Two repo-level tools (under `tools/`) operate on these suites:
-`scaffold-eval.js` creates one, and `sync-fixtures.js` refreshes the fixture
-copies from the live skill.
+`scaffold-eval.js` creates one, and `sync-fixtures.js` copies the live skill into
+the fixture workspace before each run.
 
 ## Prerequisites (once per machine)
 
@@ -142,9 +144,13 @@ From a skill's `evals/` directory:
 
 ```bash
 npm install     # installs the agent SDK(s) declared in package.json
-npx promptfoo@latest eval -c promptfooconfig.yaml -o output.json --no-cache --no-share
-npx promptfoo@latest view
+npm run eval    # copies the live skill into the fixtures, then runs promptfoo
+npm run view
 ```
+
+Pass extra promptfoo flags after `--`, e.g. `npm run eval -- --filter-pattern "T1"`.
+Run promptfoo directly only after `npm run sync`; on a fresh clone the fixture
+workspace has no skill until then.
 
 - **Node** `>= 22.22` is required by promptfoo.
 - **Auth:** the agent-SDK providers reuse your interactive login — run `claude`
@@ -161,12 +167,23 @@ npx promptfoo@latest view
   call list lives in each result's **Metadata** (`toolCalls` / `skillCalls` /
   `permissionDenials`), not in the spans — spans are turn-level only.
 
-## Fixtures are copies, not symlinks
+## Skill copies are generated, never committed
 
-The fixture skill is a **real copy** of the skill, not a symlink: Codex's skill
-scanner needs real files under `.agents/skills/`, and copies keep the eval
-independent of the live skill. The trade-off is drift — after editing the skill,
-refresh the copies from the repo root:
+Everything under a skill's directory, `evals/` included, is installed with the
+skill: `npx skills add` and Codex copy the whole folder. A committed fixture copy
+would ship a second `SKILL.md` to every user. So:
+
+- **Do not commit** `fixtures/workspace/.claude/skills/<skill>/` or
+  `fixtures/workspace/.agents/skills/<skill>/`. The suite's `.gitignore` excludes
+  them.
+- **`npm run eval` copies the live skill in** before every run (`npm run sync`
+  does only the copy). The copy always matches the skill, so there is nothing to
+  keep in step.
+- **Commit what the tests need around the skill:** sample projects and stubs.
+
+The copies are real files, not symlinks, because Codex's skill scanner needs
+real files under `.agents/skills/`. `sync-fixtures.js` picks the layouts from
+the providers in the suite's `promptfooconfig*.yaml`:
 
 ```bash
 node tools/sync-fixtures.js <plugin> <skill>   # one skill

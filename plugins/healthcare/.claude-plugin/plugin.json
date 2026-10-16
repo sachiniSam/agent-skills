@@ -1,0 +1,13 @@
+{
+  "name": "healthcare",
+  "version": "0.1.0",
+  "description": "WSO2 Healthcare skills: write services and integrations in Ballerina for healthcare applications, including HL7v2 and FHIR support.",
+  "author": {
+    "name": "WSO2",
+    "url": "https://wso2.com"
+  },
+  "homepage": "https://github.com/wso2/agent-skills",
+  "repository": "https://github.com/wso2/agent-skills",
+  "license": "Apache-2.0",
+  "keywords": ["healthcare", "migrations", "mirth", "ballerina", "hl7", "hl7v2", "wso2", "integration"]
+}
