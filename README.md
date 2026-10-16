@@ -60,6 +60,7 @@ Install a plugin:
 ```bash
 codex plugin add api-platform@wso2-agent-skills
 codex plugin add agent-manager@wso2-agent-skills
+codex plugin add asgardeo@wso2-agent-skills
 codex plugin add healthcare@wso2-agent-skills
 codex plugin add integrator@wso2-agent-skills
 ```
