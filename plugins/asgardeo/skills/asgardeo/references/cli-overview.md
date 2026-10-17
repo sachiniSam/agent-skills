@@ -3,6 +3,7 @@
 Use this to route a user's intent to the right command. It lists what exists, not every flag —
 **always confirm exact flags at runtime** with `asg <command> --help` (the CLI self-documents, so
 its help is the source of truth even as the tool evolves). Don't guess flag names from this map.
+`asg docs generate --directory <dir>` writes the full reference once, if you need more.
 
 ## Command pattern
 
@@ -15,7 +16,7 @@ asg <resource> <action> [flags]
 | Resource | Actions | Notes |
 |----------|---------|-------|
 | `login` / `logout` / `status` | — | See `auth.md`. User runs login; agent runs status. |
-| `apps` | `create`, `list`, `view`, `update`, `delete`, `filter`, `settings`, `apis`, `claims`, `protocol`, `export` | Applications. `create` supports types `oidc`, `spa`, `mobile`, `saml`. `apis add/list/remove` manages which API resources the app may request scopes from; `claims` views/updates requested user attributes; `protocol view/update` manages OIDC/SAML settings (redirect URIs, token type, grant types). See SDK integration. |
+| `apps` | `create`, `list`, `view`, `update`, `delete`, `filter`, `settings`, `apis`, `claims`, `protocol`, `export` | Applications. `create` supports types `oidc`, `spa`, `mobile`, `mcp`, `saml`. `apis add/list/remove` manages which API resources the app may request scopes from; `claims` views/updates requested user attributes; `protocol view/update` manages OIDC/SAML settings (redirect URIs, token type, grant types). See SDK integration. |
 | `users` | `create`, `view`, `update`, `delete`, `filter`, `settings` | Org users. |
 | `groups` | `create`, `view`, `update`, `delete`, `filter`, `members`, `roles`, `settings` | `members add/list/remove`; `roles list`. |
 | `roles` | `create`, `view`, `update`, `delete`, `filter`, `users`, `groups`, `settings` | `users add/list/remove`, `groups add/list/remove`. |
@@ -29,29 +30,7 @@ asg <resource> <action> [flags]
 | `tui` | — | Interactive terminal dashboard. Must be logged in. The agent should not launch it — point the user to `asg tui` if they want interactivity. |
 | `docs` | `generate`, `view` | `asg docs generate --directory <dir>` writes full markdown docs; `asg docs view --command "apps view"` prints one. |
 
-## Common read patterns
-
-```bash
-asg apps list
-asg users filter --query "name co alice" --format json
-asg apis filter --query "name co payments"
-asg orgs self
-asg groups view -i <group_id>
-asg roles users list -i <role_id>
-```
-
-## Global flags (available on every command)
-
-| Flag | Purpose |
-|------|---------|
-| `--format json\|yaml` | Structured output — use this when you need to parse the result (e.g. grab a client ID). |
-| `-N`, `--no-interactive` | Disable prompts — required for any command the agent runs unattended. |
-| `--no-color` | Plain output. |
-| `-v`, `--verbose` | Detailed logs — use when diagnosing a failure. |
-
 ## Create output — identifiers come back from the create call
-
-`create` no longer needs a follow-up `view`/`filter` to learn the new resource's ID.
 
 Without `--format`, the identifiers are printed as plain lines:
 
@@ -62,21 +41,23 @@ asg apps create --name "store-frontend" --type spa --redirect-uri "http://localh
 # Client ID: <client-id>
 ```
 
-With `--format json|yaml`, the full server response is printed instead — parse it directly:
+With `--format json|yaml`, the full created object goes to stdout instead:
 
 ```bash
 CLIENT_ID=$(asg apps create --name "store-frontend" --type spa \
   --redirect-uri "http://localhost:5173" -N -y --format json | jq -r .clientId)
 ```
 
-`clientId` appears only for applications; every resource returns `id`.
+Every resource returns `id`; applications, and agents created with `--allow-user-login`, also return `clientId`.
 
 ## Gotchas when running unattended
 
-- **`-y` isn't `-N`.** `-y` skips confirmation prompts (every mutating command accepts `-y/--yes`),
-  but interactive *input* prompts are separate — without `--no-interactive` a command missing a flag
-  falls back to a TTY prompt and fails unattended. Pass **both** `-N -y` for any create/update the
-  agent runs unattended.
+- **Pass both `-N -y`.** `-y` skips confirmations; `-N` (`--no-interactive`) stops input prompts, so a
+  missing flag fails instead of waiting on a TTY. `--format json|yaml` gives parseable output, `-v` the
+  detailed log when diagnosing.
+- **`filter` needs `-N`.** Without `-N` (or `--no-color`) every `filter` opens a full-screen terminal view,
+  even with `--format json`, and an unattended run hangs. An empty result prints
+  `Filter completed! 0 … found` and no JSON.
 - **Parsing JSON.** With `--format json|yaml`, stdout carries only the payload — progress and success
   messages go to stderr — so `| jq` and `> file.json` work directly, with no prefix-stripping.
   **Capture stdout only; never `2>&1` when you intend to parse** — merging the streams is what puts
@@ -84,9 +65,9 @@ CLIENT_ID=$(asg apps create --name "store-frontend" --type spa \
   command errors, so don't rely on the file after a failure.
 - **`list` is deprecated on `apis`, `agents`, `roles`, `users` and `groups` — use `filter`.** `list`
   fetches everything and warns; `filter` is where narrowing lives and is what these resources are
-  meant to be read with. To see everything, `filter` with no query. Two filters worth knowing:
-  - your own APIs, without Asgardeo's ~200 built-in resources: `asg apis filter -q "type eq BUSINESS"`
-  - an agent by name: `asg agents filter -q 'name eq "support-assistant"'`
+  meant to be read with. `filter` returns 10 results unless `-c <n>` asks for more. Two filters worth knowing:
+  - your own APIs, without Asgardeo's ~200 built-in resources: `asg apis filter -q "type eq BUSINESS" -N`
+  - an agent by name: `asg agents filter -q 'name eq "support-assistant"' -N`
 
   `apps list` is not deprecated. A role's members: `asg roles users list --id <roleId>`.
 - **`--edit` uses `path=value`** (dot-separated path, `=` separator, `@file.json` for complex values):
@@ -111,21 +92,6 @@ CLIENT_ID=$(asg apps create --name "store-frontend" --type spa \
 - **Role user/group JSON shapes** — `--users`/`--groups` take a JSON *array*:
   `--users '[{"value":"<user-id>"}]'`. For single IDs prefer `-u <user-id>` / `-g <group-id>`.
 
-## Discovering exact usage
-
-When unsure about flags for any action, read the help instead of guessing:
-
-```bash
-asg <resource> --help
-asg <resource> <action> --help
-```
-
-`asg apps create --help`, for example, lists the type-specific flags (`--redirect-uri`, `--issuer`,
-`--acs-uri`, etc.). For a richer reference, generate the full docs once:
-
-```bash
-asg docs generate --directory <tmp-dir>
-```
 
 ## Protocol settings vs application settings
 
@@ -155,9 +121,6 @@ app's resource instead — run `protocol view` first to see its field names.
 Redirect URIs can also be set at creation with `--redirect-uri`, and the token format with
 `--access-token-type jwt|opaque`.
 
-> `export` exists on **applications only** — `asg apps export -i <id> --file app.json` — so an app's
-> configuration can be exported, edited and applied back without an interactive session. For other
-> resources use `view --format json`; there is no `<resource> export`.
 
 ## App gotchas
 

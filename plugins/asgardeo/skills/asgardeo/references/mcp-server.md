@@ -30,7 +30,7 @@ asg apis create --type mcp \
 
 Capture the returned `id`. It appears in the Console under **Resources → MCP Servers**
 (`https://console.asgardeo.io/t/<org>/app/mcp-servers`). List existing ones with
-`asg apis filter --query "type eq MCP"`.
+`asg apis filter --query "type eq MCP" -N`.
 
 **If `--type` comes back as an unknown flag**, the CLI predates MCP support. Send the same body
 through the management API instead, which is what the flag does:
