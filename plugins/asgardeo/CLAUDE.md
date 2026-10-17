@@ -37,7 +37,3 @@ Two mandatory **gates** followed by an **intent router** into six tracks:
 - `skills/asgardeo/references/mcp-server.md` — MCP server as a resource, the client app shape, protecting the server, the Inspector proof (Track F)
 - `skills/asgardeo/references/management-apis.md` — feature areas with no CLI verb → their REST APIs via `asg api` (Track C)
 - `skills/asgardeo/scripts/install-asg-cli.js` — downloads the pinned `asg-v*` release from wso2/wso2-cli and verifies its checksum
-
-## Evals
-
-`skills/asgardeo/evals/` is a promptfoo suite run against a stubbed `asg` CLI on the fixture PATH (no org or credentials needed): 3 triggering tests and 16 task-quality scenarios, one per SDK framework plus tracks B–F. See its README and the repo-level [EVALS.md](../../EVALS.md). After editing the skill, refresh the fixture copy: `node tools/sync-fixtures.js asgardeo asgardeo`.
