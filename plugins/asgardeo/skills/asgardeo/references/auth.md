@@ -20,10 +20,10 @@ what to run and why — and stop there. The user has one thing to do; make it th
 screen:
 
 > Before I can set anything up in Asgardeo I need a session on your org. Run `asg login` — it asks
-> for your organisation name, then opens a browser to sign in. Tell me when you're through, or give
+> for your organization name, then opens a browser to sign in. Tell me when you're through, or give
 > me the org name and I'll start it for you.
 
-**If they would rather you ran it**, that is fine — ask, don't assume, and the organisation name is
+**If they would rather you ran it**, that is fine — ask, don't assume, and the organization name is
 the only thing you need from them. It is never yours to guess: `asg login --org-name <what they
 gave you>`, then tell them a browser is opening and to sign in there, and confirm with `asg status`
 once they say they are through.
@@ -36,7 +36,7 @@ a convenience, not something to defend when it goes wrong.
 
 Why the default is still that they run it: the command blocks while it polls, so the URL and code
 land in your tool output rather than in their terminal — which matters exactly when the CLI cannot
-open a browser for them — and a failure there (CLI access off, wrong organisation) is one only they
+open a browser for them — and a failure there (CLI access off, wrong organization) is one only they
 can fix.
 
 What they'll see: the CLI asks for their **root organization name** — they can skip that prompt by

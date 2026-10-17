@@ -44,7 +44,7 @@ asg apps create --type mcp --name "<name>" --redirect-uri "<client callback>" -N
 **JWT is not optional here**, and it is why the type exists. The server-side SDKs validate the
 token against Asgardeo's JWKS; an opaque token fails with `invalid_token` on every request and
 looks like a broken login. `--type mcp` sets it; do not override it with
-`--access-token-type default`.
+`--access-token-type opaque`.
 
 The redirect URI is the **MCP client's** callback, not the server's:
 

@@ -128,7 +128,9 @@ Direct CLI operations on users, groups, roles, apps, APIs, scopes, IdPs, brandin
 - **An MCP client can't connect, or every tool call is refused** → the symptom table at the end of
   `references/mcp-server.md`. First suspect: the client app issues opaque tokens.
 - **An agent can't get a token** → `references/agent-identity.md`, the section for the option in use.
-  `ABA-60007` means the application was created without `--api-based-auth`.
+  `ABA-60007` means the application has API-based authentication off: turn it on with
+  `asg apps update --id <appId> --edit "advancedConfigurations.enableAPIBasedAuthentication=true" -N`,
+  or create the app with `--api-based-auth`.
 
 ---
 
