@@ -56,7 +56,8 @@ A few things are interactive UI experiences with no usable API route; send the u
 (`asg apps settings` / `asg orgs settings` deep-link where possible) and say so plainly:
 
 - **Login Flow Builder / Login Flow AI** — visual flow design. (The resulting `authenticationSequence`
-  *is* editable via `asg apps update --file`; see `authentication-methods.md`.)
+  *is* editable via `asg apps update --edit "authenticationSequence=@seq.json"`; see
+  `authentication-methods.md`.)
 - **Branding AI** — generated branding. (Manual branding is `asg branding`.)
 - **Creating social/enterprise connections** — the Console wizard handles the provider handshake;
   the CLI can then list/reference them (`asg idps list`).

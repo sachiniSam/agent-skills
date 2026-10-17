@@ -16,7 +16,7 @@ There are two layers, and they sit on different sides of the CLI boundary:
 
 | Task | CLI? | How |
 |------|------|-----|
-| Edit an app's login flow / authentication sequence | **Yes** | `asg apps update --file` (interactive export → edit → re-import; with `-N` imports a prepared file) or `--edit <path>=<value>` (`-e`) |
+| Edit an app's login flow / authentication sequence | **Yes** | `asg apps update --edit "authenticationSequence=@seq.json"` — the recipe below |
 | Add a built-in factor to a flow (password, TOTP, Email OTP, SMS OTP) | **Yes** | edit the app's authentication sequence (no connection needed for system authenticators) |
 | List existing connections to reference in a flow | **Yes** | `asg idps list` / `asg idps view` to get the IdP name/ID |
 | **Create** a new connection / IdP (social, enterprise, passkey provider, etc.) | **No — Console** | `asg idps` is read-only (list/view/delete). Create it in the Console, then reference it |
@@ -27,8 +27,7 @@ There are two layers, and they sit on different sides of the CLI boundary:
 
 ## Editing an app's login flow with the CLI
 
-Don't guess the JSON schema — **read the real sequence, edit it, patch it back.** The
-agent-runnable recipe (verified end-to-end):
+Don't guess the JSON schema — **read the real sequence, edit it, patch it back:**
 
 ```bash
 # 1. Read the current authenticationSequence from the app object
@@ -44,6 +43,9 @@ asg apps update --name "<app>" --edit "authenticationSequence=@seq.json" -N -y
 # 4. Verify
 asg apps view --name "<app>" --format json -N   # check the steps took
 ```
+
+Then the user signs in with a test user (Track A) to confirm the new method appears and works. A
+flow change applies from the next login, so an existing session will not show it.
 
 Example `seq.json` adding TOTP as a second factor:
 
@@ -77,14 +79,3 @@ To add a **federated/social** step, the connection must already exist (create it
 reference it by name/ID — get that from `asg idps list` — inside the exported sequence. To add a
 **built-in MFA factor** (e.g. TOTP as a second step), add it to the sequence directly; no connection
 needed.
-
-## Pattern to follow when a user asks for a login method
-
-1. Identify the method and check whether it needs a **connection** (social/enterprise/third-party MFA) or
-   is a **built-in factor** (password/TOTP/Email-SMS OTP).
-2. If a connection is needed and doesn't exist: tell the user it's a Console step, point them to the
-   method's docs page, and have them create it. Use `asg idps list` afterward to confirm it exists.
-3. Edit the app's authentication sequence with `asg apps update --file` (export → edit → re-import),
-   referencing the connection where needed.
-4. Verify by signing in (you'll likely need a test user — see Track A) and confirm the new method appears
-   and works. Re-login is needed for flow changes to take effect.
