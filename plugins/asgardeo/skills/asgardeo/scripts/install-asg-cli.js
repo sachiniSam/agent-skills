@@ -1,94 +1,108 @@
 #!/usr/bin/env node
-// Install the Asgardeo `asg` CLI by building it from source.
+// Install the Asgardeo `asg` CLI from its GitHub release.
 //
-// The CLI has no released binaries yet, so we clone the repo and `go install` it.
-// Idempotent: safe to re-run. Prints one status line at the end.
+// Releases live in wso2/wso2-cli under `asg-v<semver>` tags, beside the WSO2 CLI's
+// own releases. Each one ships a bare binary per platform (`asg-<os>-<arch>`,
+// `.exe` on Windows) and a `checksums.txt`. Idempotent: safe to re-run. Prints one
+// status line at the end.
 //
 // Steps:
-//   1. Verify Go is installed.
-//   2. Clone (or reuse) the asgardeo-cli repo.
-//   3. `go install .` from cmd/asg — drops the binary in `go env GOBIN` or `$(go env GOPATH)/bin`.
-//   4. Ensure that bin directory is on PATH for future shells.
+//   1. Pick the release: the pinned VERSION below, or the newest `asg-v*` one.
+//   2. Download this platform's binary and checksums.txt.
+//   3. Verify the binary's SHA-256 against checksums.txt; refuse to install on a mismatch.
+//   4. Move it into the install directory and make sure that directory is on PATH.
 //
 // Env overrides:
-//   ASG_REPO   git URL to clone (default the trial fork, see below)
-//   ASG_REF    branch or tag to build (default the trial branch, see below)
-//   ASG_SRC    local clone directory (default "$HOME/asgardeo-cli")
+//   ASG_VERSION       a release tag such as asg-v0.1.0, or "latest" (default: VERSION)
+//   ASG_INSTALL_DIR   where to put the binary (default ~/.local/bin; %LOCALAPPDATA%\Programs\asg on Windows).
+//                     When set, the shell profile is left alone and PATH is the caller's to manage.
+//   ASG_RELEASE_URL   base URL holding the release assets, for testing a build before it is
+//                     published (https, or http on localhost only)
 //
-// TRIAL ONLY: the defaults point at sachiniSam/asgardeo-cli @ trial/cli-preview,
-// which is upstream main plus the three open CLI pull requests. The skill needs
-// those fixes and upstream main does not have them yet. Restore the
-// wso2-enterprise repo and its default branch once they merge.
+// Node builtins only (Node >= 18 for fetch).
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 
+// The CLI version this skill is written against. Bump it in the same change that
+// updates the skill for a new CLI release, so the two never drift apart.
+const VERSION = 'asg-v0.1.0-rc.1';
+const REPO = 'wso2/wso2-cli';
+// An optional prerelease suffix (asg-v0.1.0-rc.1) is allowed for ASG_VERSION; "latest" still
+// skips releases published as GitHub prereleases.
+const TAG_RE = /^asg-v(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?$/;
+const TIMEOUT_MS = 120_000;
+
 const IS_WIN = process.platform === 'win32';
-const REPO = process.env.ASG_REPO || 'https://github.com/sachiniSam/asgardeo-cli';
-const REF = process.env.ASG_REF || 'trial/cli-preview';
-const SRC = process.env.ASG_SRC || path.join(os.homedir(), 'asgardeo-cli');
 const BIN_NAME = IS_WIN ? 'asg.exe' : 'asg';
 
-function run(exe, args, opts = {}) {
-  return spawnSync(exe, args, { encoding: 'utf8', ...opts });
+function assetName() {
+  const osName = { darwin: 'darwin', linux: 'linux', win32: 'windows' }[process.platform];
+  const arch = { x64: 'amd64', arm64: 'arm64', ia32: '386', arm: 'arm' }[process.arch];
+  if (!osName || !arch || (osName !== 'linux' && !['amd64', 'arm64'].includes(arch))) {
+    throw new Error(`no asg release for ${process.platform}/${process.arch}. Supported: Linux amd64, arm64, arm, 386; macOS and Windows amd64, arm64.`);
+  }
+  return `asg-${osName}-${arch}${IS_WIN ? '.exe' : ''}`;
 }
 
-function goEnv(key) {
-  const r = run('go', ['env', key]);
-  return r.status === 0 ? (r.stdout || '').trim() : '';
+function installDir() {
+  if (process.env.ASG_INSTALL_DIR) return path.resolve(process.env.ASG_INSTALL_DIR);
+  if (IS_WIN) return path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local'), 'Programs', 'asg');
+  return path.join(os.homedir(), '.local', 'bin');
 }
 
-// Resolve where `go install` will place the binary.
-function goBinDir() {
-  const gobin = goEnv('GOBIN');
-  if (gobin) return gobin;
-  const gopath = goEnv('GOPATH') || path.join(os.homedir(), 'go');
-  return path.join(gopath, 'bin');
+async function get(url, as) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), headers: { 'User-Agent': 'asgardeo-skill-installer' } });
+  if (!res.ok) throw new Error(`download failed (${res.status} ${res.statusText}): ${url}`);
+  return as === 'json' ? res.json() : as === 'text' ? res.text() : Buffer.from(await res.arrayBuffer());
 }
 
-function ensureClone() {
-  // Treat the directory as the repo if it has the module we build from.
-  if (fs.existsSync(path.join(SRC, 'cmd', 'asg'))) {
-    // The point of REF is that the build comes from a known commit, so a reused
-    // clone is moved onto it rather than built wherever it happens to sit. Never
-    // over uncommitted work: that clone may be someone's own checkout.
-    const dirty = run('git', ['-C', SRC, 'status', '--porcelain']);
-    if (dirty.status !== 0) {
-      throw new Error(`${SRC} is not a git repository. Set ASG_SRC to a different path, then retry.`);
-    }
-    if ((dirty.stdout || '').trim()) {
-      throw new Error(`${SRC} has uncommitted changes, so it cannot be moved to ${REF}. Commit or stash them, or set ASG_SRC to a different path, then retry.`);
-    }
-    if (run('git', ['-C', SRC, 'fetch', REPO, REF], { stdio: ['ignore', 'ignore', 'inherit'] }).status !== 0) {
-      throw new Error(`could not fetch ${REF} from ${REPO} into ${SRC}. Check the ref exists and that you have access, or set ASG_SRC to a different path.`);
-    }
-    if (run('git', ['-C', SRC, 'checkout', '--detach', 'FETCH_HEAD'], { stdio: ['ignore', 'ignore', 'inherit'] }).status !== 0) {
-      throw new Error(`fetched ${REF} but could not check it out in ${SRC}.`);
-    }
-    return `reused-existing-clone@${REF}`;
+async function resolveTag() {
+  const wanted = process.env.ASG_VERSION || VERSION;
+  if (wanted !== 'latest') {
+    if (!TAG_RE.test(wanted)) throw new Error(`ASG_VERSION must be a tag like asg-v0.1.0, or "latest" (got "${wanted}").`);
+    return wanted;
   }
-  if (fs.existsSync(SRC) && fs.readdirSync(SRC).length > 0) {
-    throw new Error(`${SRC} exists but is not the asgardeo-cli repo. Set ASG_SRC to a different path or remove it, then retry.`);
+  // The repository's Latest marker belongs to the WSO2 CLI, so filter by tag instead.
+  const releases = await get(`https://api.github.com/repos/${REPO}/releases?per_page=100`, 'json');
+  const tags = releases
+    .filter((r) => !r.draft && !r.prerelease && TAG_RE.test(r.tag_name))
+    .map((r) => r.tag_name)
+    .sort((a, b) => {
+      const [x, y] = [a, b].map((t) => t.match(TAG_RE).slice(1, 4).map(Number));
+      return y[0] - x[0] || y[1] - x[1] || y[2] - x[2];
+    });
+  if (!tags.length) throw new Error(`no published asg-v* release found in ${REPO}.`);
+  return tags[0];
+}
+
+function releaseBase(tag) {
+  const override = process.env.ASG_RELEASE_URL;
+  if (!override) return `https://github.com/${REPO}/releases/download/${tag}`;
+  const u = new URL(override);
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(u.hostname);
+  if (u.protocol !== 'https:' && !(u.protocol === 'http:' && local)) {
+    throw new Error('ASG_RELEASE_URL must be https, or http on localhost.');
   }
-  const r = run('git', ['clone', '--branch', REF, REPO, SRC], { stdio: ['ignore', 'inherit', 'inherit'] });
-  if (r.status !== 0) {
-    throw new Error(`git clone failed. The repo is private — clone it yourself with credentials, then re-run (or set ASG_SRC to an existing clone): git clone --branch ${REF} ${REPO}`);
-  }
-  return `freshly-cloned@${REF}`;
+  return override.replace(/\/+$/, '');
 }
 
 function updatePathUnix(binDir) {
-  const shell = process.env.SHELL || '';
-  const rc = shell.endsWith('/zsh') ? path.join(os.homedir(), '.zshrc') : path.join(os.homedir(), '.bashrc');
+  if ((process.env.PATH || '').split(':').includes(binDir)) return 'path-already-configured';
+  const shell = path.basename(process.env.SHELL || '');
+  const home = os.homedir();
+  const [rc, line] = shell === 'fish'
+    ? [path.join(home, '.config', 'fish', 'config.fish'), `set -gx PATH "${binDir}" $PATH`]
+    : [path.join(home, shell === 'zsh' ? '.zshrc' : '.bashrc'), `export PATH="${binDir}:$PATH"`];
   let existing = '';
   try { existing = fs.readFileSync(rc, 'utf8'); } catch { /* missing file is fine */ }
-  if (existing.includes(binDir) || (process.env.PATH || '').split(':').includes(binDir)) {
-    return 'path-already-configured';
-  }
+  if (existing.includes(binDir)) return 'path-already-configured';
   try {
-    fs.appendFileSync(rc, `\nexport PATH="${binDir}:$PATH"\n`);
+    fs.mkdirSync(path.dirname(rc), { recursive: true });
+    fs.appendFileSync(rc, `\n${line}\n`);
     return `path-added-to:${rc}`;
   } catch {
     return `path-update-failed:${rc}`;
@@ -96,45 +110,44 @@ function updatePathUnix(binDir) {
 }
 
 function updatePathWindows(binDir) {
-  const ps = (script) => run('powershell.exe',
-    ['-NoProfile', '-NonInteractive', '-Command', script]);
+  const ps = (script) => spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], { encoding: 'utf8' });
   const getR = ps(`[Environment]::GetEnvironmentVariable('Path','User')`);
   if (getR.status !== 0) return 'path-update-failed:User-Env';
   const current = (getR.stdout || '').trim();
-  if (current.split(';').some((p) => p.toLowerCase() === binDir.toLowerCase())) {
-    return 'path-already-configured';
-  }
+  if (current.split(';').some((p) => p.toLowerCase() === binDir.toLowerCase())) return 'path-already-configured';
   const sep = current && !current.endsWith(';') ? ';' : '';
   const setR = ps(`[Environment]::SetEnvironmentVariable('Path', ${JSON.stringify(current + sep + binDir)}, 'User')`);
   return setR.status === 0 ? 'path-added-to:User-Env' : 'path-update-failed:User-Env';
 }
 
-function main() {
-  if (run('go', ['version']).status !== 0) {
-    throw new Error('Go is required to build the asg CLI. Install Go from https://go.dev/dl/ and retry.');
-  }
+async function main() {
+  const asset = assetName();
+  const tag = await resolveTag();
+  const base = releaseBase(tag);
 
-  const cloneStatus = ensureClone();
+  const [binary, sums] = await Promise.all([get(`${base}/${asset}`), get(`${base}/checksums.txt`, 'text')]);
+  const line = sums.split('\n').map((l) => l.trim().split(/\s+/)).find((p) => p[1] === asset || p[1] === `*${asset}`);
+  if (!line) throw new Error(`${asset} is not listed in checksums.txt for ${tag}; not installing it.`);
+  const actual = crypto.createHash('sha256').update(binary).digest('hex');
+  if (actual !== line[0].toLowerCase()) throw new Error(`checksum mismatch for ${asset} (${tag}); not installing it.`);
 
-  const moduleDir = path.join(SRC, 'cmd', 'asg');
-  const install = run('go', ['install', '.'], { cwd: moduleDir, stdio: ['ignore', 'inherit', 'inherit'] });
-  if (install.status !== 0) {
-    throw new Error(`'go install .' failed in ${moduleDir}. See the output above.`);
-  }
+  const dir = installDir();
+  fs.mkdirSync(dir, { recursive: true });
+  const target = path.join(dir, BIN_NAME);
+  // Write beside the target, then rename: replacing a binary in place can leave
+  // macOS refusing to run it (Killed: 9), and a failed write never half-installs.
+  const tmp = path.join(dir, `.${BIN_NAME}.${process.pid}.tmp`);
+  fs.writeFileSync(tmp, binary, { mode: 0o755 });
+  fs.renameSync(tmp, target);
 
-  const binDir = goBinDir();
-  const binPath = path.join(binDir, BIN_NAME);
-  if (!fs.existsSync(binPath)) {
-    throw new Error(`build succeeded but '${BIN_NAME}' was not found in ${binDir} (go env GOBIN/GOPATH).`);
-  }
-
-  const pathStatus = IS_WIN ? updatePathWindows(binDir) : updatePathUnix(binDir);
-  console.log(`asg installed at ${binPath} (${cloneStatus}; ${pathStatus})`);
+  const onPath = (process.env.PATH || '').split(path.delimiter).some((p) => path.resolve(p) === dir);
+  const pathStatus = onPath ? 'path-already-configured'
+    : process.env.ASG_INSTALL_DIR ? `path-not-configured:${dir}`
+      : IS_WIN ? updatePathWindows(dir) : updatePathUnix(dir);
+  console.log(`asg ${tag} installed at ${target} (checksum verified; ${pathStatus})`);
 }
 
-try {
-  main();
-} catch (err) {
+main().catch((err) => {
   console.error(`ERROR: ${err.message}`);
   process.exit(1);
-}
+});

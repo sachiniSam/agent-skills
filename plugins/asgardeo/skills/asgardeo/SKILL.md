@@ -39,13 +39,13 @@ Load only what the current track points to:
 - `references/mcp-server.md` — MCP server as a resource, the client app shape, protecting the server, the Inspector proof.
 - `references/management-apis.md` — feature areas with no CLI verb → their management REST APIs via `asg api`.
 
-Bundled script: `scripts/install-asg-cli.js` (run with `node <absolute path>`) — clones and builds the CLI.
+Bundled script: `scripts/install-asg-cli.js` (run with `node <absolute path>`) — downloads and verifies the CLI release.
 
 ---
 
 ## Gate 1 — a session (always first)
 
-1. **CLI present?** `asg --help`. If missing, it's built from source with Go (no released binaries). Ask: user installs it ([repo steps](https://github.com/sachiniSam/asgardeo-cli/tree/trial/cli-preview), trial branch), or you run `node <skill>/scripts/install-asg-cli.js` (checks Go, clones, `go install`, fixes PATH; on `path-update-failed`, tell the user to add `$(go env GOPATH)/bin` to PATH; on clone failure, the user clones with their credentials and re-runs).
+1. **CLI present?** `asg --help`. If missing, ask: the user downloads it from [the release](https://github.com/wso2/wso2-cli/releases/tag/asg-v0.1.0-rc.1), or you run `node <skill>/scripts/install-asg-cli.js` (downloads the release binary for this platform, verifies its checksum, installs it to `~/.local/bin`, fixes PATH). On `path-update-failed` or `path-not-configured`, tell the user to add the directory it printed to PATH. On a checksum mismatch, stop and tell the user; never install around it.
 2. **Authenticated?** `asg status`. If not, read `references/auth.md` and follow it: the user runs `asg login`, in a message of its own, and you re-verify with `asg status` before Gate 2.
 
 ## Gate 2 — an approved plan
