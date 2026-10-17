@@ -16,131 +16,53 @@ scenarios, and the choice changes what you wire up:
 
 **Look at the code before asking.** If the API the agent will call already reads an `act` claim,
 an `actor`, or `requested_actor` — search the backend for those — someone designed it for
-delegation. Say so, and lead with scenario 2:
+delegation. Say so, and lead with scenario 2.
 
-> Your API already reads the `act` claim, so it was built for an agent acting on a user's
-> behalf. I'll set that up unless you want the agent to act on its own.
-
-Otherwise put it to the user in their terms. Everything that needs their say-so goes in this **one
-message** — the scenario, the agent's name, and the role's name and scopes (you know the scopes
-from reading the API) — and then **stop**:
-
-> Two ways your agent can work, and it depends on whose data it touches:
->
-> 1. **On its own** — the agent has its own permissions, like a team member with its own account.
-> 2. **On behalf of a user** — it borrows a specific person's permissions, with their consent.
->
-> Which fits what you're building?
->
-> I'd register it as **orders-assistant**, with a role **Orders Assistant Access** granting
-> `read:orders` and `write:orders` — the two scopes the API checks. Different names, or fewer scopes?
-
-Then end the turn. Nothing gets created, and no other step runs, until the user has answered.
-"I'll use X unless you say otherwise" followed by the next command is not a confirmation; it is
-a decision made for them. One stop is enough; don't come back with a second question for the role.
-
-If they're unsure, the deciding question is: **should this agent be able to touch any user's data, or
-only the data of the person who asked it to act?** The first is 1, the second is 2.
+Ask the scenario, the agent's name, and the role's name and scopes (read the API to know them) in
+**one question**, per Gate 2 in `SKILL.md`. The name shows in the Console and audit trails for the
+agent's lifetime: propose one from the project, never a placeholder like `test-agent`, and give
+each agent its own identity rather than sharing one. If the user is unsure of the scenario, ask:
+**should this agent be able to touch any user's data, or only the data of the person who asked it
+to act?** The first is 1, the second is 2.
 
 Most assistant-style agents are 2 — "show me *my* orders", "cancel *my* booking". Reach for 1 when
 the agent's work isn't tied to a particular person. An agent that wants standing access to a user's
 data with no approval at any point has no flow — say so; the choice is 1 with its own permissions or
 2 with the user's consent.
 
-**Once they've answered, lay out the plan — then wait for them to approve it.** Same three headings
-and per-resource tables as the login and authorization tracks (see **How to work** in `SKILL.md`), so
-nothing in the run is a surprise. Fill it from their answers:
+The plan then follows `planning.md`: the agent and its sign-in app, the role on that app, the env
+file the CLI writes, and how the user will see the agent as the caller.
 
-> Here's the plan.
->
-> **What I'll create**
->
-> **Agent**
->
-> | Name | Sign-in app | Redirect URI |
-> |---|---|---|
-> | orders-assistant | Created with the agent, same ID | `http://localhost:3001/callback` |
->
-> **Role** (on the agent's own application — Application audience)
->
-> | Role | Scopes | Member |
-> |---|---|---|
-> | Orders Assistant Access | `read:orders`, `write:orders` | the agent |
->
-> **What changes in your code**
->
-> - `assistant/.env` — the CLI writes `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` into it directly; already gitignored, and the secret is never shown.
-> - `assistant/index.js` — wires `@asgardeo/javascript` so every call carries the agent's token.
->
-> **How you'll know it worked**
->
-> You run the assistant once, and the API's activity log shows the agent as the caller instead of `anonymous`.
-
-Then **end the turn and wait for approval** — the same rule as everywhere else, and nothing is
-created until they answer.
-
-**Steps 1–3 are the same either way.** After that, follow the matching section.
+**Steps 1–2 are the same either way.** After that, follow the matching section.
 
 ---
 
-## Step 1 — Agree the agent's name
+## Step 1 — Create the agent, with its application
 
-The name appears in the Console and in audit trails for as long as the agent exists, so it should say
-what the agent does. Propose one from the project, ask in the same message as the scenario question
-above, and **wait for the answer before running anything**:
+Keep two things apart. The **application the agent signs in through** is an OAuth client: it has the
+`client_id`, grants and redirect URI, and tokens are issued to it. The **API or MCP server the agent
+calls** is an API resource with scopes, never an OAuth application (step 2).
 
-> I'll register it as **orders-assistant** — different name?
-
-A proposal the user hasn't replied to is not agreed. Never invent one silently, and never use a
-placeholder like `test-agent`. If they are building several agents, give each its own identity
-rather than sharing one — separate identities is the point.
-
-## Step 2 — Create the agent, with its application
-
-Two different things are involved here, and both get called "the app" — keep them apart:
-
-- **The application the agent signs in *through*.** An OAuth client registration in Asgardeo: it
-  has the `client_id`, the grant types, the redirect URI. The agent supplies the identity (its ID and
-  secret); this app supplies the client. Tokens are issued *to* it (`aud` = its `client_id`). This is
-  what step 2 is about.
-- **The API or MCP server the agent *calls*.** The resource that validates the token. It is
-  registered as an API resource with scopes, never as an OAuth application. That is step 3.
-
-Creating an agent on its own gives you only the identity, not the client. Asgardeo creates the
-client with the agent when "Allow users to log in to this agent" is on, and that is the normal
-practice: one agent, one client, same ID. **Do it this way by default, without asking** — the
-question "which application should the agent sign in through" means nothing to most users, and a
-separate client is the right answer for a standalone agent anyway.
-
-The one situation to handle differently: the agent's code lives inside a service that already has an
-Asgardeo application — for example an assistant that is a route in a backend registered in Track A.
-Then say so in a line and offer the choice, defaulting to a separate client:
-
-> Your backend already has an Asgardeo app. I'll give the assistant its own client anyway — keeps
-> its tokens distinct — unless you'd rather it sign in through the existing one.
-
-If they choose the existing one, use *An application already exists* below.
+Creating an agent on its own gives you only the identity, not the client. With
+`--allow-user-login`, Asgardeo creates the client with the agent: one agent, one client, same ID.
+**Do it this way by default, without asking.** The one exception: the agent's code lives inside a
+service that already has an Asgardeo application. Then say so in a line and offer the choice,
+defaulting to a separate client; if they choose the existing one, use *An application already
+exists* below.
 
 ### Create the agent with its own application (default)
 
-`--allow-user-login` asks Asgardeo to create an application alongside the agent. It shares the
-agent's ID, has API-based authentication on, and the CLI shapes it as a public client with PKCE,
-the authorization-code grant, the redirect URI you give, and JWT access tokens. `--env-file` makes
-the CLI write the credentials straight into the agent's env file, so the secret is never shown.
-Together that is everything the flows below need — but settle where the secret is going first.
+`--allow-user-login` gives the agent an application that shares its ID, has API-based
+authentication on, and is shaped as a public client with PKCE, the authorization-code grant, the
+redirect URI you give, and JWT access tokens. `--env-file` makes the CLI write the credentials
+straight into the agent's env file, so the secret is never shown.
 
 #### Where the secret lives is the user's decision
 
-The agent's *code* never varies: it reads `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` from the
-environment, whatever put them there. Use those three names always, and the same code works on a
-laptop, on a platform that injects variables, or behind a secret manager. What varies is how the
-values reach the environment, and that is a deployment choice the user owns — a gitignored `.env`
-locally, platform variables on Vercel or Railway, AWS Secrets Manager or Vault injecting at start-up,
-a Kubernetes secret, an encrypted file. Don't assume dotenv because the examples here use it.
-
-So ask (see **How to work** in `SKILL.md`), proposing from what the project shows — a `dotenv`
-dependency or an existing `.env` points one way, a `vercel.json`, Dockerfile or Kubernetes manifest
-another. Then take the matching path:
+The agent's code reads `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` from the environment, whatever
+put them there; use those names always. How the values get there is a deployment choice the user
+owns, so ask, proposing from what the project shows (a `dotenv` dependency or existing `.env`, or a
+platform or container config). Then take the matching path:
 
 - **A file the CLI can write — the default whenever the destination is a file.** Use `--env-file`:
   the secret goes Asgardeo → CLI → disk and is never displayed. This is the local-development
@@ -148,15 +70,16 @@ another. Then take the matching path:
 - **Somewhere the CLI cannot reach** — a secret manager, a platform's variables UI, CI settings.
   Use `-c`, which puts the secret on the user's clipboard for them to paste in. Tell them what to
   paste it into and under which name; **never read the clipboard back** (`pbpaste`, `xclip`, …) —
-  there is no way to check what is in it, and reading it would put the secret in your context.
+  reading it would put the secret in your context.
 - **Neither fits** — the user runs `asg agents create` themselves and handles the secret without
-  you. Rare, but always available.
+  you.
 
-Whichever they choose, the secret never passes through the conversation. And say plainly that a
-dotenv file is a local-development answer: it should not ship to production or into an image. If the
-secret is ever lost it cannot be read back — it is regenerated in the Console, not recovered.
+Whichever they choose, the secret never passes through the conversation. A dotenv file is a
+local-development answer; it should not ship to production or into an image.
 
 #### Writing it to a file (local development)
+
+Do these in order: once step 3 runs, the secret is already on disk.
 
 1. **Pick the env file the agent's code reads** (`.env` next to it) and confirm git ignores it:
    `git check-ignore -q <path>/.env || echo "NOT ignored"`. If it isn't ignored — including
@@ -175,28 +98,17 @@ secret is ever lost it cannot be read back — it is regenerated in the Console,
    ```
 
 - **`--redirect-uri`** is where a user's browser returns after signing in (section 2). It is
-  required either way — the agent's own login checks it too. `http://localhost:3001/callback` is
-  the usual dev value; confirm it with the user as you would for an app.
+  required either way — the agent's own login checks it too. Confirm it with the user as you would
+  for an app.
 - **`--env-file`** writes `AGENT_ID`, `AGENT_SECRET` and `CLIENT_ID` into the file: existing lines
-  for those keys are replaced, every other line is kept, and a new file is created private. The
-  secret goes Asgardeo → CLI → disk and appears nowhere else.
+  for those keys are replaced, every other line is kept, and a new file is created private.
 - For an agent that asks users for approval out of band rather than through a browser, add
   `--agent-type background` (see *Using CIBA* below).
 
-The output confirms what happened without repeating the values:
-
-```
-Agent secret written to assistant/.env (not shown). Keep that file out of version control.
-Application (same ID as the agent) client ID: <client-id>
-SUCCESS: Agent created successfully
-ID: <agent-id>
-```
-
-`--format json` also returns `applicationId` and `clientId`. Read the file back only to confirm
-the keys are present (`grep -c '^AGENT_SECRET=' assistant/.env`), never to print it.
-
-**The secret can never be read again** after this. If it is lost, regenerate it in the Console
-(the agent → **Credentials** → **Regenerate**) and update every place the old one was used.
+Read the file back only to confirm the keys are present (`grep -c '^AGENT_SECRET=' assistant/.env`),
+never to print it. **The secret can never be read again** after this. If it is lost, regenerate it
+in the Console (the agent → **Credentials** → **Regenerate**) and update every place the old one
+was used.
 
 ### An application already exists
 
@@ -216,39 +128,25 @@ out of an opaque token). Fix any of them with `asg apps protocol update --id <ap
 Without API-based authentication the agent's first login fails with
 `ABA-60007 App native authentication is not enabled`.
 
-## Step 3 — Give the agent its permissions
+## Step 2 — Give the agent its permissions
 
-Scopes and roles work exactly as they do for users, so run the pipeline in `authorize-app.md`:
-register the API resource and its scopes, authorize the agent's application for them, create a role
-holding those scopes, put the agent in the role.
-
-One thing is specific to the auto-created application: its role audience is **Application**, so
-the role must be created against it — an Organization-audience role will not be picked up:
+Run the pipeline in `authorize-app.md` with the role name and scopes the user agreed to. The one
+agent-specific part: the auto-created application's role audience is **Application**, so the role is
+created against it (an Organization-audience role is not picked up), and the agent joins it as a
+role member alongside users:
 
 ```bash
 asg apps apis add --id <agentId> --api-id <apiId> --scopes read:orders,write:orders -N -y
 asg roles create --name "Orders Assistant Access" --audience-type Application --audience-id <agentId> \
   -p read:orders -p write:orders -N -y
 asg roles users add -i <roleId> -u <agentId> -N -y
-```
-
-The role name and scopes are the ones the user agreed to in the opening question — not a new
-invention here. If the org already has a role carrying exactly those scopes on this app, say so and
-reuse it rather than creating a duplicate.
-
-(With an existing application, use its ID in place of `<agentId>` for the first two commands, and
-whichever audience it is set to.) Agents are role members alongside users, which is why this is
-`roles users add` with the agent's ID.
-
-Check it landed before moving on — a missing role assignment surfaces later as a token with the scope
-quietly absent, which is harder to diagnose:
-
-```bash
 asg agents view --id <agentId> -N --format json   # "roles" lists "Orders Assistant Access"
 ```
 
-Give the agent only the scopes it needs. An agent acting on its own can reach anything its roles
-allow, with no human in the loop to catch a mistake.
+With an existing application, use its ID in place of `<agentId>` for the first two commands. Check
+the role landed before moving on: a missing assignment surfaces later as a scope quietly absent from
+the token. Give the agent only the scopes it needs — an agent acting on its own has no human in the
+loop to catch a mistake.
 
 ---
 
@@ -291,7 +189,7 @@ dotenv.config({ path: fileURLToPath(new URL('.env', import.meta.url)) });
 
 const asgardeo = new AsgardeoJavaScriptClient({
   baseUrl: process.env.ASGARDEO_BASE_URL,        // from `asg status`, not a remembered host
-  clientId: process.env.CLIENT_ID,               // the application's client_id (step 2)
+  clientId: process.env.CLIENT_ID,               // the application's client_id (step 1)
   afterSignInUrl: process.env.REDIRECT_URI,      // must match the app's redirect URI
   scopes: ['openid', 'read:orders'],             // what to ask for
 });
@@ -314,11 +212,9 @@ when the agent is started from the repo root — and an empty secret surfaces as
 Then send it like any bearer token: `headers: { Authorization: \`Bearer ${await getAgentToken()}\` }` —
 to an MCP client's transport, to `fetch`, to whatever the framework's tool layer takes.
 
-Under the hood this is the app-native flow — `/oauth2/authorize` with `response_mode=direct`, the
-agent's ID and secret to `/oauth2/authn` as the *Username & Password* authenticator, then the code
-exchange with PKCE — which is why the application needs API-based authentication and the
-authorization-code grant. Tokens last about an hour; the response includes a refresh token, so a
-long-running agent should refresh rather than log in again on every call.
+The SDK runs the app-native flow, which is why the application needs API-based authentication and
+the authorization-code grant. Tokens last about an hour; a long-running agent should use the refresh
+token rather than log in again on every call.
 
 Verify by decoding the token. Expect:
 
@@ -327,20 +223,15 @@ Verify by decoding the token. Expect:
 ```
 
 `aut: AGENT` is how an API can tell an agent's own token from a user's. If a scope is missing, look at
-step 3 — the app's API authorization, the role's audience, the role assignment — not at the API's
+step 2 — the app's API authorization, the role's audience, the role assignment — not at the API's
 validation: a scope the agent isn't entitled to is dropped silently rather than refused.
 
 **Close by telling the user to test it** — run the assistant once against their API — the way
 the login track ends with "try signing in". Don't call their API yourself.
 
-**`Agent authentication failed.` with nothing else.** The SDK discards the reason (the flow's
-`flowStatus` and its response). In practice it is nearly always the secret — mistyped, stale
-clipboard, or the placeholder still in `.env`. Check the `.env` line first. To see the real
-status, replay the flow by hand once: `POST /oauth2/authorize` with the app's `client_id`,
-`response_type=code`, `response_mode=direct`, `redirect_uri`, `scope`, then `POST /oauth2/authn`
-with the `flowId`, the `authenticatorId` from the response, and the agent ID/secret as
-`username`/`password`. `FAIL_INCOMPLETE` means bad credentials; a disabled agent or a missing
-authenticator says so in the body.
+**`Agent authentication failed.` with nothing else.** The SDK discards the reason. In practice it is
+nearly always the secret — mistyped, stale clipboard, or the placeholder still in `.env`. Check the
+`.env` line first; the *Agent authentication* guide below covers replaying the flow by hand.
 
 ---
 
@@ -363,7 +254,7 @@ SDK fetches it for you inside `getOBOToken`.
 
 **The scopes in the delegated token are the user's, not the agent's.** They come from the roles
 *the user* holds on the agent's application, so the person delegating needs a role there too:
-create it against the agent's app (Application audience, as in step 3) with the scopes they may
+create it against the agent's app (Application audience, as in step 2) with the scopes they may
 delegate, and add the user with `asg roles users add -i <roleId> -u <userId> -N -y`. An agent whose
 role carries `write:orders` can still not cancel on behalf of a rep who has only `read:orders` —
 which is the point.
@@ -391,7 +282,7 @@ const agentConfig = { agentID: process.env.AGENT_ID, agentSecret: process.env.AG
 // 1. Send the user to sign in, with requested_actor set to this agent.
 await open(await asgardeo.getOBOSignInURL(agentConfig));
 
-// 2. Catch the redirect. The path and port come from the redirect URI registered in step 2.
+// 2. Catch the redirect. The path and port come from the redirect URI registered in step 1.
 const authCode = await new Promise((resolve) => {
   const app = express();
   const server = app.listen(3001);
@@ -485,14 +376,10 @@ reading. Respect `interval` rather than polling faster, and stop at `expires_in`
 
 ---
 
-## When something doesn't match
+## Sources
 
-Steps 1–3, the agent's own token with scopes, and the on-behalf-of authorization URL have been
-checked against a live organization. The delegated token after a real person signs in or approves an
-email is expected to carry the `act` claim shown above; if a real run produces something different,
-believe the token.
-
-When the org returns something this file doesn't cover, go to the source, in this order:
+When the org returns something this file doesn't cover, or a real token differs from what is shown
+here, believe the org and go to the source, in this order:
 
 - **The agent flows and their prerequisites** — the *Agent authentication* guide:
   `https://wso2.com/identity-platform/docs/guides/agentic-ai/ai-agents/agent-authentication.md`
