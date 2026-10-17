@@ -1,7 +1,8 @@
 ---
 name: asgardeo
 description: >
-  Asgardeo (WSO2 Identity Platform) work through the `asg` CLI. Use when the user wants to add
+  Asgardeo (WSO2 Identity Platform) work through the `asg` CLI. Use for any task that runs `asg`
+  or touches an Asgardeo org, including a single user, app or role change. Use when the user wants to add
   login, SSO, social login, MFA, or passwordless sign-in to an app; gate features or an API by
   role or scope; give an AI agent its own identity, credentials, or act-on-behalf-of tokens;
   secure an MCP server or gate its tools behind OAuth; manage or configure any Asgardeo resource
@@ -21,7 +22,7 @@ Users arrive with one intent — "let people log in", "lock this down by role", 
 - **A credential is never yours.** Client and agent secrets stay in the Console or go straight to an `--env-file`; none passes through chat, a command you run, or a file you write. The one exception is a throwaway test-user password, reported once in the summary.
 - **Ask through the harness's question UI, everywhere it exists.** Where a structured question tool is available (`AskUserQuestion` in Claude Code), route every question through it — an app or agent name, a role name, a redirect URI, which scenario applies, approving the plan. Ask related questions together in one call, and rely on the tool's free-text option for "something else". Where no such tool exists, ask the same questions in prose, in one message. Either way: **end the turn and wait.**
 - **Pre-empt the blocker before it blocks** — offer the next thing the user will need before they hit its absence.
-- **A summary is finished when every resource in it has its Console link.** For each resource created or changed, the closing summary carries `https://console.asgardeo.io/t/<org>/app/<resource>/<id>` (`<resource>` is `applications`, `users`, `roles`, `api-resources`… — the full pattern is in `cli-overview.md`), so the user can inspect or adjust it. When a step is Console-only, link straight to that screen.
+- **A summary is finished when every resource in it has its Console link.** For each resource created or changed, the closing summary carries `https://console.asgardeo.io/t/<org>/app/<resource>/<id>` — the `/app/` segment is easy to drop, so check it (a user: `https://console.asgardeo.io/t/acme/app/users/<id>`; `<resource>` is `applications`, `users`, `groups`, `roles`, `organizations`; API resources add their type, see `cli-overview.md`), so the user can inspect or adjust it. When a step is Console-only, link straight to that screen.
 - **On a failure, diagnose (Track D) before trying something else.**
 - **Track names are internal.** Say "set up login" or "gate features by role" to the user — never "Track A".
 
@@ -178,6 +179,6 @@ Read `references/mcp-server.md`. The MCP server is a **resource** (Track B's API
 ## Quick reference
 
 - Command pattern: `asg <resource> <action> [flags]` — `--help` at every level
-- Unattended: `-N -y`; parseable: `--format json` (stdout is then pure data)
+- Unattended: `-N -y`; parseable: `--format json` (stdout is then pure data), except `apps protocol view`, where it unmasks the client secret
 - `baseUrl` for SDKs and Console links: the `Base URL` line from `asg status`, verbatim — the rule and why is in `references/sdk-integration.md`
 - Interactive dashboard: point the user to `asg tui`

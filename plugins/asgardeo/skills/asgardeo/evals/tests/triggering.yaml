@@ -21,7 +21,8 @@
         for a client secret; (3) it does NOT create any Asgardeo resource yet,
         because the app's framework, name and redirect URI are still unknown;
         (4) it asks the user for those details (or inspects the workspace to
-        find them) rather than inventing them.
+        find them) rather than inventing them. The workspace holds a dozen sample
+        apps under apps/, so naming several of them is accurate, not invented.
       threshold: 0.7
 
 # SHOULD NOT activate — WSO2 API gateway work belongs to api-publish.

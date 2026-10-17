@@ -19,6 +19,7 @@ Identifier = the MCP server's URL (recommended by the docs; it is what goes in t
 ```bash
 asg apis create --type mcp \
   --name "Orders MCP Server" \
+  --description "Order tools for agents" \
   --identifier "http://localhost:3000/mcp" \
   --require-auth \
   --scopes '[

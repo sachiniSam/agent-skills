@@ -116,7 +116,7 @@ Sending the token is half the job; the API must verify it and check the scope pe
 - **Redirect-URI mismatch** — the #1 cause. The SDK's redirect must exactly match a URI registered
   on the app. Redirect URIs are a protocol setting, so check and fix them with:
   ```bash
-  asg apps protocol view --id <appId> --format json -N        # see callbackURLs
+  asg apps protocol view --id <appId> -N                      # see callbackURLs
   asg apps protocol update --id <appId> --edit 'callbackURLs=["http://localhost:3000"]' -N -y
   ```
 - **Roles claim empty** — see above: claim not requested, or no re-login since assignment.

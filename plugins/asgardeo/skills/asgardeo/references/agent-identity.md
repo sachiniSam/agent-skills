@@ -207,7 +207,7 @@ default on ordinary apps:
 ```bash
 asg agents create --name "orders-assistant" --description "…" --env-file assistant/.env -N -y
 asg apps update --id <appId> --edit "advancedConfigurations.enableAPIBasedAuthentication=true" -N
-asg apps protocol view --id <appId> --protocol oidc -N --format json   # clientId, grantTypes, callbackURLs, accessToken.type
+asg apps protocol view --id <appId> --protocol oidc -N   # clientId, grantTypes, callbackURLs, accessToken.type
 ```
 
 Check the protocol output: the grants must include `authorization_code`, `callbackURLs` must

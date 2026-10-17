@@ -30,6 +30,7 @@ and a scope named wrong is expensive to change once roles and code reference it:
 ```bash
 asg apis create \
   --name "Orders API" \
+  --description "Orders backend" \
   --identifier "https://api.example.com/orders" \
   --require-auth \
   --scopes '[{"name":"read:orders","description":"Read orders","displayName":"Read Orders"},
@@ -115,7 +116,7 @@ signature-and-claims validation is impossible until the app is switched to JWT.
 
 ```bash
 asg apps protocol update --id <appId> --edit "accessToken.type=JWT" -N -y
-asg apps protocol view --id <appId> --format json -N     # verify: "type": "JWT"
+asg apps protocol view --id <appId> -N                   # verify: "type": "JWT"
 ```
 
 Set it at creation instead and there is nothing to fix later:
@@ -197,7 +198,7 @@ Attributes → Roles.) Then read it in the SDK — see "Reading the user and the
 
 | Goal | Command |
 |------|---------|
-| Register API + scopes | `asg apis create --name … --identifier … --require-auth --scopes '[…]' -N -y` |
+| Register API + scopes | `asg apis create --name … --description … --identifier … --require-auth --scopes '[…]' -N -y` |
 | Add scope to API | `asg apis scopes add -i <apiId> --scopes '[…]'` |
 | Authorize app for API + scopes | `asg apps apis add --id <appId> --api-id <apiId> --scopes <s1,s2> -N -y` |
 | List app's authorized APIs | `asg apps apis list --id <appId> --format json` |
@@ -208,4 +209,4 @@ Attributes → Roles.) Then read it in the SDK — see "Reading the user and the
 | Assign role → user / group | `asg roles users add -i <roleId> -u <userId>` / `asg roles groups add -i <roleId> -g <groupId>` |
 | List role's users / groups | `asg roles users list -i <roleId>` / `asg roles groups list -i <roleId>` |
 | Create group + add members | `asg groups create --name "<name>" -N -y` / `asg groups members add -i <groupId> -u <userId>` |
-| Read / set access token type | `asg apps protocol view --id <appId> --format json` / `asg apps protocol update --id <appId> --edit "accessToken.type=JWT" -N -y` |
+| Read / set access token type | `asg apps protocol view --id <appId> -N` / `asg apps protocol update --id <appId> --edit "accessToken.type=JWT" -N -y` |

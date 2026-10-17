@@ -141,7 +141,7 @@ generic 400 whatever path you spell it with.
 | `authenticationSequence.*` (login flow) | `idToken.*`, `logout.*`, `subject.*` |
 
 ```bash
-asg apps protocol view --id <appId> --format json -N              # everything editable
+asg apps protocol view --id <appId> -N                            # everything editable, secret masked
 asg apps protocol update --id <appId> --edit "accessToken.type=JWT" -N -y
 asg apps protocol update --id <appId> --edit 'callbackURLs=["http://localhost:3000"]' -N -y
 ```
@@ -161,6 +161,8 @@ Redirect URIs can also be set at creation with `--redirect-uri`, and the token f
 
 ## App gotchas
 
+- **Never add `--format` to `apps protocol view`.** Without it the client secret prints as `***`;
+  with `--format json` it prints in full. Plain `-N` output is the same JSON after a `SUCCESS` line.
 - **Redirect URIs are one array.** `apps protocol update --edit 'callbackURLs=[…]'` replaces the
   whole list, so adding a production URL later means restating the dev URL in the same command or
   silently losing it. Register every URL the user knows about at creation.
@@ -182,8 +184,9 @@ pattern is stable:
 https://console.asgardeo.io/t/<org>/app/<resource>/<id>
 ```
 
-`<org>` is what `asg status` shows; `<resource>` is `applications`, `users`, `groups`, `roles`,
-`organizations`, or `api-resources`. Applications also take a tab fragment —
+`<org>` is what `asg status` shows; `<resource>` is `applications`, `users`, `groups`, `roles`, or
+`organizations`. An API resource adds its type before the ID:
+`…/app/api-resources/<type>/<id>`, with `<type>` the `type` field from `asg apis view`. Applications also take a tab fragment —
 `…/applications/<id>#tab=protocol` (also `general`, `user-attributes`, `sign-in-method`,
 `api-authorization`, `roles`, `advanced`, `info`), which is useful for pointing at the exact screen
 a Console-only step needs.
