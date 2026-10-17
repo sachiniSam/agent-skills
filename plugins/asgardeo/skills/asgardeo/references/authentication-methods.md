@@ -78,23 +78,6 @@ reference it by name/ID — get that from `asg idps list` — inside the exporte
 **built-in MFA factor** (e.g. TOTP as a second step), add it to the sequence directly; no connection
 needed.
 
-## Method taxonomy (what the user might ask for → where it's configured)
-
-All of these are documented under the authentication guides; navigate to the specific method's page.
-
-- **Username & password** — the default first step; nothing to add for basic login.
-- **Social login** — Google, Facebook, Apple, Microsoft, LinkedIn, GitHub. *Create the connection in the
-  Console*, then add it as a step in the app's flow (CLI can edit the flow).
-- **Enterprise / federated** — OIDC IdP, SAML 2.0 IdP (also eID providers, decentralized). *Connection in
-  Console*, flow editable via CLI. JIT provisioning auto-creates accounts on first federated login.
-- **Multi-factor (MFA)** — TOTP, Email OTP, SMS OTP, push, passkey, iProov, Duo. Built-in factors (TOTP,
-  Email/SMS OTP) can be added to the flow via CLI; third-party factors need a Console connection first.
-- **Passwordless** — magic link, passkey (FIDO2), Email/SMS OTP, HYPR. Passkey/HYPR connections are set
-  up in the Console; the flow step is then editable.
-- **Adaptive / conditional authentication** — change the flow by device/network/location/context. Authored
-  with a script in the Console.
-- **Identifier-first login** — prompt for the identifier before the credential; a flow option.
-
 ## Pattern to follow when a user asks for a login method
 
 1. Identify the method and check whether it needs a **connection** (social/enterprise/third-party MFA) or
