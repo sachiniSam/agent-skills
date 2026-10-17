@@ -2,8 +2,7 @@
 
 Asgardeo authorization is **role-based access control built on API scopes**: scopes are the
 permissions the app or API checks; roles are how users get them. The pipeline below is ordered —
-each step depends on the previous. Commands here are the canonical shapes; confirm flags with
-`asg <cmd> --help` if anything looks off.
+each step depends on the previous.
 
 Register API + scopes → authorize the app → choose role audience → create roles and assign →
 **switch the app to JWT tokens** → enforce in the backend. That fifth step is easy to miss and
@@ -76,7 +75,7 @@ asg roles create --name "Orders Admin" \
 ```
 
 - `-p`/`--permission-name` is repeatable; the values **are** the scope names from step 1 — which is
-  why steps 1–2 come first.
+  why steps 1–2 come first. The create output includes the new role's `id`.
 
 **Show the roles against the scopes**, in the same shape as the table in step 1, so the user can see
 which role grants what without reading the commands back:
@@ -85,7 +84,6 @@ which role grants what without reading the commands back:
 |---|---|---|
 | Orders Viewer | `read:orders` | Everyone in support |
 | Orders Admin | `read:orders`, `write:orders` | Supervisors |
-- The create output includes the new role's `id`.
 
 ```bash
 asg roles users add -i <roleId> -u <userId>                       # -u repeatable
@@ -104,8 +102,7 @@ asg roles groups add -i <roleId> -g <groupId>                     # the group no
 ```
 
 Check with `asg roles groups list -i <roleId>` / `asg groups members list -i <groupId>`. Users added
-to the group later inherit the role, but each user still needs to log in again before their token
-carries the new scopes.
+to the group later inherit the role.
 
 ## 5. Switch the app to JWT access tokens
 
@@ -125,10 +122,8 @@ Set it at creation instead and there is nothing to fix later:
 asg apps create --name "<name>" --type spa --redirect-uri "<url>" --access-token-type jwt -N -y
 ```
 
-(Protocol settings are a separate resource from the application object, which is why `apps update
---edit` cannot reach them — `protocol.…` and `inboundProtocolConfiguration.…` both return a 400.
-`apps protocol` fetches the resource, merges the edit, and writes it back, so fields you do not name
-keep their values.)
+(The token type is a protocol setting, so `apps update --edit` cannot reach it; see "Protocol
+settings vs application settings" in `cli-overview.md`.)
 
 The alternative to JWT is token introspection (`/oauth2/introspect`) on every request — a network
 round trip per call. JWT is the usual choice for a backend that checks scopes.
@@ -167,7 +162,7 @@ async function requireAuth(req, res, next) {
 const requireScope = (scope) => (req, res, next) =>
   req.scopes?.includes(scope) ? next() : res.status(403).json({ error: `requires ${scope}` });
 
-app.delete('/api/orders/:id', requireAuth, requireScope('delete:orders'), handler);
+app.delete('/api/orders/:id', requireAuth, requireScope('write:orders'), handler);
 ```
 
 **A newly assigned role or scope reaches tokens only on the user's next login** — an existing
@@ -191,22 +186,3 @@ Attributes → Roles.) Then read it in the SDK — see "Reading the user and the
   gating.
 - **The `roles` value can be a comma-separated string** (`"Employee,Admin"`), not always an array —
   parse both.
-
----
-
-## Quick command reference
-
-| Goal | Command |
-|------|---------|
-| Register API + scopes | `asg apis create --name … --description … --identifier … --require-auth --scopes '[…]' -N -y` |
-| Add scope to API | `asg apis scopes add -i <apiId> --scopes '[…]'` |
-| Authorize app for API + scopes | `asg apps apis add --id <appId> --api-id <apiId> --scopes <s1,s2> -N -y` |
-| List app's authorized APIs | `asg apps apis list --id <appId> --format json` |
-| Revoke an API authorization | `asg apps apis remove --id <appId> --api-id <apiId> -N -y` |
-| Request the roles claim | `asg apps claims --id <appId> --add "http://wso2.org/claims/roles" -N -y` |
-| Create app role (perms = scopes) | `asg roles create --name … --audience-type Application --audience-id <appId> -p <scope> -N -y` |
-| Create org role | `asg roles create --name … --audience-type Organization -p <scope> -N -y` |
-| Assign role → user / group | `asg roles users add -i <roleId> -u <userId>` / `asg roles groups add -i <roleId> -g <groupId>` |
-| List role's users / groups | `asg roles users list -i <roleId>` / `asg roles groups list -i <roleId>` |
-| Create group + add members | `asg groups create --name "<name>" -N -y` / `asg groups members add -i <groupId> -u <userId>` |
-| Read / set access token type | `asg apps protocol view --id <appId> -N` / `asg apps protocol update --id <appId> --edit "accessToken.type=JWT" -N -y` |

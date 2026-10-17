@@ -32,22 +32,6 @@ Capture the returned `id`. It appears in the Console under **Resources → MCP S
 (`https://console.asgardeo.io/t/<org>/app/mcp-servers`). List existing ones with
 `asg apis filter --query "type eq MCP" -N`.
 
-**If `--type` comes back as an unknown flag**, the CLI predates MCP support. Send the same body
-through the management API instead, which is what the flag does:
-
-```bash
-asg api /api/server/v1/api-resources --method POST --body '{
-  "name": "Orders MCP Server",
-  "identifier": "http://localhost:3000/mcp",
-  "requiresAuthorization": true,
-  "resourceType": "MCP",
-  "scopes": [
-    { "name": "orders:read",  "displayName": "Read orders",  "description": "List and view orders" },
-    { "name": "orders:write", "displayName": "Write orders", "description": "Create and edit orders" }
-  ]
-}' --format json
-```
-
 ## 2. Register the MCP client application
 
 `--type mcp` uses the Console's **MCP Client Application** template: authorization-code grant,
@@ -75,27 +59,6 @@ URI so step 5 can run. When the MCP client is a **server-side process** that can
 use `--type oidc --access-token-type jwt` instead (confidential client). When the MCP host is an
 **AI agent** that should carry its own identity, the client application is the agent's — Track E,
 `agent-identity.md`, and this file's step 1 and 3 still apply to the server.
-
-**If `--type mcp` is rejected**, the CLI predates it. `--type spa --access-token-type jwt` gives
-the same OAuth behaviour but lists as a Single-Page Application rather than an MCP Client
-Application; for Console parity, post the template payload instead:
-
-```bash
-asg api /api/server/v1/applications --method POST --body '{
-  "name": "<name>",
-  "templateId": "mcp-client-application",
-  "inboundProtocolConfiguration": { "oidc": {
-    "grantTypes": ["authorization_code", "refresh_token"],
-    "callbackURLs": ["<client callback>"],
-    "publicClient": true,
-    "pkce": { "mandatory": true, "supportPlainTransformAlgorithm": false },
-    "accessToken": { "type": "JWT", "userAccessTokenExpiryInSeconds": 3600, "applicationAccessTokenExpiryInSeconds": 3600 },
-    "refreshToken": { "expiryInSeconds": 86400, "renewRefreshToken": true }
-  } }
-}'
-```
-
-Then read the client ID with `asg apps view --name "<name>" --format json -N`.
 
 ## 3. Authorize the client for the MCP server, and give users roles
 
