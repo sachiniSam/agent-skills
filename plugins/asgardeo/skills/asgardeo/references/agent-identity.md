@@ -112,8 +112,9 @@ was used.
 
 ### An application already exists
 
-Only when the user chose to reuse one. Create a plain agent (same env-file handling as above), and
-make sure the application allows sign-in over the API — the agent flows need it, and it is off by
+Only when the user chose to reuse one. Create a plain agent (same env-file handling as above; without
+`--allow-user-login` the CLI writes only `AGENT_ID` and `AGENT_SECRET`, so add the existing app's
+`CLIENT_ID` from `apps protocol view` yourself), and make sure the application allows sign-in over the API — the agent flows need it, and it is off by
 default on ordinary apps:
 
 ```bash
@@ -266,7 +267,7 @@ handles the user's password. It contributes two things, and the SDK adds both:
 
 1. **`requested_actor=<agentId>`** on the authorization URL — `getOBOSignInURL(agentConfig)` builds
    a normal PKCE authorization URL with it added.
-2. **`actor_token=<the agent's own token>`** at the code exchange — `getOBOToken(agentConfig, code)`
+2. **`actor_token=<the agent's own token>`** at the code exchange — `getOBOToken(agentConfig, { code, state, session_state })`
    fetches the agent token and sends it with the code.
 
 Between the two, the agent has to catch the redirect. A tiny HTTP server on the redirect URI does it:

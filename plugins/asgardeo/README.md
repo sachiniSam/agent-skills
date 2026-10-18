@@ -26,7 +26,7 @@ Go from zero to working login in your framework of choice.
 > Set up SSO for my Vue SPA using Asgardeo.
 ```
 
-The skill installs the `asg` CLI, helps you log in, registers an OAuth2/OIDC application, and wires the matching Asgardeo SDK into your code.
+The skill offers to install the `asg` CLI, helps you log in, registers an OAuth2/OIDC application, and wires the matching Asgardeo SDK into your code.
 
 ### Gating features by role
 
@@ -87,7 +87,7 @@ The skill installs the `asg` CLI, helps you log in, registers an OAuth2/OIDC app
 
 ### Other resources
 
-The CLI also manages identity providers, branding, organizations, and agents — just describe what you need.
+The CLI also manages branding, organizations, and agents, and lists identity providers (creating one is a Console step) — just describe what you need.
 
 ```
 > List the identity providers configured in my org.

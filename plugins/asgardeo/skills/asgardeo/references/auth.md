@@ -11,7 +11,9 @@ the browser path, and only when they ask you to.
 asg status
 ```
 
-Authenticated → done, skip the rest. No session (or an error) → step 2.
+Authenticated → done, skip the rest. No session (or an error) → step 2. "Authenticated" means
+credentials are stored, not that they still work: a "session has expired" error later still means
+the user logs in again.
 
 ## 2. The user logs in
 
@@ -46,10 +48,10 @@ Signing in as themselves is the default and needs no choosing; `--m2m-applicatio
 the machine path. (If no browser can open — SSH, headless —
 the CLI prints the URL and code to use from any device, and keeps waiting.)
 
-**If login stops with "CLI access is turned off for this organization"**, nothing about the command
-is wrong: CLI access is on by default only for organizations created after CLI support shipped, and
-an older one has to turn it on once in the Asgardeo Console, on the CLI tab. The CLI detects this
-before opening a browser and prints the steps. The user enables it and re-runs `asg login` —
+**If login stops with "CLI access is disabled for this organization, so sign-in cannot be
+completed"**, nothing about the command is wrong: CLI access is on by default only for organizations
+created after CLI support shipped, and an older one has to turn it on once in the Console's CLI
+Settings tab. The CLI detects this before opening a browser and prints the steps. The user enables it and re-runs `asg login` —
 don't re-run it for them, and don't try another org name or server URL, which will not help.
 
 Two special cases:
@@ -69,7 +71,7 @@ Two special cases:
 asg status
 ```
 
-Confirm it shows the expected organization, then proceed. Don't continue past a failed check.
+Confirm the Base URL ends in the expected organization, then proceed. Don't continue past a failed check.
 
 ## Sessions renew themselves
 

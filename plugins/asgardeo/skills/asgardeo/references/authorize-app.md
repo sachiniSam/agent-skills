@@ -9,7 +9,7 @@ Register API + scopes → authorize the app → choose role audience → create 
 blocks the sixth: tokens are opaque by default and a backend cannot read scopes from them.
 
 App and API IDs come from the `create` calls that made them (or `asg apps view --name "<name>"
---format json` / `asg apis filter` for pre-existing ones). To see only the APIs the org registered —
+--format json -N` / `asg apis filter` for pre-existing ones). To see only the APIs the org registered —
 `asg apis list` also returns ~200 of Asgardeo's built-in resources — filter by type:
 `asg apis filter -q "type eq BUSINESS" -N --format json`. The scopes on one API:
 `asg apis scopes list -i <apiId> -N --format json`; don't search scopes org-wide by name.
@@ -50,11 +50,11 @@ Later additions: `asg apis scopes add -i <apiId> --scopes '[…]'`; inspect with
 
 ```bash
 asg apps apis add --id <appId> --api-id <apiId> --scopes read:orders,write:orders -N -y
-asg apps apis list --id <appId> --format json            # verify
+asg apps apis list --id <appId> -N --format json         # verify
 ```
 
 `--scopes` is comma-separated (or repeated). `--policy` defaults to `RBAC`; `"No Policy"` skips the
-role check for that API. Console equivalent: `asg apps settings` → **API Authorization**.
+role check for that API. Console equivalent: the app's **API Authorization** tab (`#tab=api-authorization`).
 
 ## 3. Choose the role audience
 
@@ -107,7 +107,7 @@ to the group later inherit the role.
 ## 5. Switch the app to JWT access tokens
 
 **Do this before writing any backend validation.** Asgardeo issues **opaque** access tokens by
-default (`accessToken.type = "Default"`), and `asg apps create` does not change that. An opaque
+default (`accessToken.type = "Default"`) unless the app is created with `--access-token-type jwt`. An opaque
 token is a random string — a backend cannot decode it or read a `scope` claim from it, so
 signature-and-claims validation is impossible until the app is switched to JWT.
 
@@ -130,7 +130,7 @@ round trip per call. JWT is the usual choice for a backend that checks scopes.
 
 ## 6. Enforce in the app
 
-The app requests the scopes at login (`scope: ['openid','profile','read:orders']`); the scopes the
+The app requests the scopes at login (the SDK's `scopes: ['openid','profile','read:orders']`); the scopes the
 user's roles permit arrive in the access token's `scope` claim. Per request, the backend validates
 the token and checks that claim. A worked Express example (`npm install jose`):
 
@@ -174,11 +174,11 @@ To branch on role *names*, request the `roles` attribute on the app:
 
 ```bash
 asg apps claims --id <appId> --add "http://wso2.org/claims/roles" -N -y
-asg apps claims --id <appId> --format json     # view current claim configuration
+asg apps claims --id <appId> -N --format json  # view current claim configuration
 ```
 
-(`--add`/`--remove` preserve the other requested claims. Console: `asg apps settings` → User
-Attributes → Roles.) Then read it in the SDK — see "Reading the user and their roles" in
+(`--add`/`--remove` preserve the other requested claims. Console: the app's **User
+Attributes** tab → Roles.) Then read it in the SDK — see "Reading the user and their roles" in
 `sdk-integration.md`. Two gotchas:
 
 - **Roles usually arrive via `/oauth2/userinfo`, not the access token** — a backend inspecting only

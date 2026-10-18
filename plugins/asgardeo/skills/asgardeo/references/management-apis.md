@@ -25,7 +25,7 @@ fails" in `cli-overview.md`), not that the API route is wrong.
 
 ## Routing table — feature area → management API
 
-Doc slugs append to `https://wso2.com/identity-platform/docs/apis/`.
+Doc slugs append to `https://wso2.com/identity-platform/docs/apis/`; drop the trailing slash and add `.md`.
 
 | User asks about… | API (doc slug) |
 |---|---|
@@ -48,12 +48,12 @@ Doc slugs append to `https://wso2.com/identity-platform/docs/apis/`.
 | Verifiable credential templates | `vc-template-management-rest-api/` |
 | SCIM bulk / batch operations | `scim2/scim2-bulk-rest-api/`, `scim2/scim2-batch-operations/` |
 
-Full catalog (anything not listed): `https://wso2.com/identity-platform/docs/apis/`.
+Full catalog (anything not listed): `https://wso2.com/identity-platform/docs/apis.md`.
 
 ## Genuinely Console-only — hand off, don't improvise
 
 A few things are interactive UI experiences with no usable API route; send the user to the Console
-(`asg apps settings` / `asg orgs settings` deep-link where possible) and say so plainly:
+(link the exact Console page, as in `cli-overview.md`) and say so plainly:
 
 - **Login Flow Builder / Login Flow AI** — visual flow design. (The resulting `authenticationSequence`
   *is* editable via `asg apps update --edit "authenticationSequence=@seq.json"`; see

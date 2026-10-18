@@ -2,7 +2,7 @@
 
 "How users authenticate" = the application's **login flow** (its authentication sequence). Asgardeo
 supports many methods (password, social, enterprise/federated, MFA, passwordless), and the official
-guides are the source of truth: https://wso2.com/identity-platform/docs/guides/authentication/
+guides are the source of truth: https://wso2.com/identity-platform/docs/guides/authentication.md
 (fetch a page's `.md` twin, e.g. `guides/authentication/social-login/add-google-login.md`; the index is `docs/llms-full.txt`)
 
 There are two layers, and they sit on different sides of the CLI boundary:
@@ -20,10 +20,10 @@ There are two layers, and they sit on different sides of the CLI boundary:
 | Add a built-in factor to a flow (password, TOTP, Email OTP, SMS OTP) | **Yes** | edit the app's authentication sequence (no connection needed for system authenticators) |
 | List existing connections to reference in a flow | **Yes** | `asg idps list` / `asg idps view` to get the IdP name/ID |
 | **Create** a new connection / IdP (social, enterprise, passkey provider, etc.) | **No — Console** | `asg idps` is read-only (list/view/delete). Create it in the Console, then reference it |
-| Conditional/adaptive auth scripts, JIT provisioning toggles | **Mostly Console** | some live in the app config (editable via `--file`); the script editor is a Console experience |
+| Conditional/adaptive auth scripts, JIT provisioning toggles | **Mostly Console** | some live in the app config (editable with the `--edit` recipe below); the script editor is a Console experience |
 
 > Be honest about the split: tell the user which parts you did with the CLI and which they need to do in
-> the Console (`asg apps settings --name <app>` opens it).
+> the Console (link the app's page, `…/app/applications/<id>#tab=sign-in-method`).
 
 ## Editing an app's login flow with the CLI
 
@@ -64,7 +64,7 @@ Example `seq.json` adding TOTP as a second factor:
 Notes:
 - **Use the authenticator names the app object returns**, not the ones the create API accepts —
   password is `BasicAuthenticator` in a stored sequence, though `basic` is accepted at creation
-  time. Copying step 1's export is the reliable way to get them right.
+  time. Copying them from step 1's `apps view` output is the reliable way to get them right.
 - `--edit` also handles a single scalar field without a file: `--edit description="New description" -N -y`.
 - **`--edit` only reaches the application object.** Protocol settings — callback URLs, grant types,
   access token type — live in a separate resource with its own command, `asg apps protocol update`

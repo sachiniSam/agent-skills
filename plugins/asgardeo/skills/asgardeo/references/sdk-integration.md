@@ -12,10 +12,10 @@ knowledge the quickstarts don't cover.
   `https://<host>/t/<org-name>`). Never assemble it from a remembered host: production, dev and
   self-hosted deployments each have their own, and a base URL already in the project is the answer,
   not a mistake to fix.
-- **client secret** (`oidc` apps only) — the user reads it from the Console (`asg apps settings`);
-  it never passes through chat.
+- **client secret** (`oidc` apps only) — the user reads it from the app's Console page
+  (`…/app/applications/<id>#tab=protocol`, see `cli-overview.md`); it never passes through chat.
 - The SDK's redirect/callback URL must be a **registered redirect URI** on the app
-  (`asg apps view` to confirm) — a mismatch is the #1 cause of broken login.
+  (`asg apps protocol view` to confirm) — a mismatch is the #1 cause of broken login.
 
 ## Route by framework
 
@@ -38,21 +38,15 @@ object). The full index of markdown pages is `docs/llms-full.txt`.
 | .NET (ASP.NET Core / Blazor) | `oidc` | standard OIDC middleware | `complete-guides/dotnet/configure-authentication-properties.md`, then `add-login-and-logout.md`, `securing-routes-within-the-app.md` (same folder) |
 | Android / Flutter | `mobile` | as the tutorial shows | `tutorials/auth-users-into-android-apps.md` / `tutorials/auth-users-into-flutter-apps.md` |
 
-Then:
-
-1. Register the app with the row's type (`asg apps create --name "<name>" --type <type>
-   --redirect-uri <url> -N -y`) and capture the identifiers from the output. Agree the name with the
-   user before creating — it is theirs, not a placeholder.
-2. Fetch the row's page and wire its snippet into the **user's existing project** with the inputs
-   above — skip the quickstart's scaffold-a-new-app steps.
-3. Verify login with a test user (Track A flow).
+Fetch the row's page and wire its snippet into the **user's existing project** with the inputs
+above — skip the quickstart's scaffold-a-new-app steps.
 
 **Framework not listed:** find its page in `docs/llms-full.txt` (one fetch) and take the `.md`
 path from there — that index is the only source for deep paths.
 
-**The token exchange is always the SDK's or the OIDC library's.** A blank SDK cell means the
-fetched page uses a generic OIDC client (Angular, Nuxt, Spring Boot, .NET) or `@asgardeo/auth-spa`
-through a plugin; take whichever that page uses. Writing the authorization-code or PKCE flow by hand
+**The token exchange is always the SDK's or the OIDC library's.** Where the row names a generic
+OIDC library (Angular, Spring Boot, .NET, the mobile tutorials), take whichever the fetched page
+uses. Writing the authorization-code or PKCE flow by hand
 is never the answer, even when a package seems missing.
 
 ## Auth state has three states, not two
@@ -119,6 +113,7 @@ Sending the token is half the job; the API must verify it and check the scope pe
   asg apps protocol view --id <appId> -N                      # see callbackURLs
   asg apps protocol update --id <appId> --edit 'callbackURLs=["http://localhost:3000"]' -N -y
   ```
+  The list is replaced, so restate every URI already registered, or the others are lost.
 - **Roles claim empty** — see above: claim not requested, or no re-login since assignment.
 - **Scopes missing from the access token** — the app isn't authorized for the API/scopes (check
   `asg apps apis list --id <appId>`; grant with `asg apps apis add`), or the SDK config

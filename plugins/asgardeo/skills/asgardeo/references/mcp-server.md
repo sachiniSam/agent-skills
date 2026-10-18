@@ -58,7 +58,7 @@ Ask which client will connect; for a server that has no client yet, register wit
 URI so step 5 can run. When the MCP client is a **server-side process** that can hold a secret,
 use `--type oidc --access-token-type jwt` instead (confidential client). When the MCP host is an
 **AI agent** that should carry its own identity, the client application is the agent's — Track E,
-`agent-identity.md`, and this file's step 1 and 3 still apply to the server.
+`agent-identity.md`, and this file's steps 1 and 3–5 still apply to the server.
 
 ## 3. Authorize the client for the MCP server, and give users roles
 

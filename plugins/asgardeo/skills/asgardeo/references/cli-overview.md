@@ -16,7 +16,7 @@ asg <resource> <action> [flags]
 | Resource | Actions | Notes |
 |----------|---------|-------|
 | `login` / `logout` / `status` | — | See `auth.md`. User runs login; agent runs status. |
-| `apps` | `create`, `list`, `view`, `update`, `delete`, `filter`, `settings`, `apis`, `claims`, `protocol`, `export` | Applications. `create` supports types `oidc`, `spa`, `mobile`, `mcp`, `saml`. `apis add/list/remove` manages which API resources the app may request scopes from; `claims` views/updates requested user attributes; `protocol view/update` manages OIDC/SAML settings (redirect URIs, token type, grant types). See SDK integration. |
+| `apps` | `create`, `list`, `view`, `update`, `delete`, `filter`, `settings`, `apis`, `claims`, `protocol`, `export` | Applications. `create` supports types `oidc`, `spa`, `mobile`, `mcp`, `saml`. `apis add/list/remove` manages which API resources the app may request scopes from; `claims` views/updates requested user attributes; `protocol view/update` manages OIDC/SAML settings (redirect URIs, token type, grant types). See `sdk-integration.md`. |
 | `users` | `create`, `view`, `update`, `delete`, `filter`, `settings` | Org users. |
 | `groups` | `create`, `view`, `update`, `delete`, `filter`, `members`, `roles`, `settings` | `members add/list/remove`; `roles list`. |
 | `roles` | `create`, `view`, `update`, `delete`, `filter`, `users`, `groups`, `settings` | `users add/list/remove`, `groups add/list/remove`. |
@@ -26,7 +26,7 @@ asg <resource> <action> [flags]
 | `branding` | `create`, `view`, `update`, `delete` | Org branding preferences. |
 | `orgs` | `create`, `view`, `update`, `delete`, `filter`, `self`, `settings` | Organizations. `orgs self` = current org from the token. |
 | `agents` | `create`, `view`, `update`, `delete`, `filter` | Asgardeo agents. |
-| `api` | — | Raw authenticated API request — the escape hatch for anything without a verb. Syntax: `asg api "/api/server/v1/<path>" -X GET`, add `-b '<json>'` or `-b @file.json` for a body, `-q key=value` for query params, `-r` for the raw response, `-o <file>` to save it. Paths starting `/api/`, `/scim2/`, `/scim/` pass through as-is. Which API to call: `management-apis.md`. |
+| `api` | — | Raw authenticated API request — the escape hatch for anything without a verb. Syntax: `asg api "/api/server/v1/<path>" -X GET`, add `-b '<json>'` or `-b @file.json` for a body, `-q key=value` for query params, `-r` for compact JSON, `-o <file>.json` to save it. Paths starting `/api/`, `/scim2/`, `/scim/` pass through as-is. Which API to call: `management-apis.md`. |
 | `tui` | — | Interactive terminal dashboard. Must be logged in. The agent should not launch it — point the user to `asg tui` if they want interactivity. |
 | `docs` | `generate`, `view` | `asg docs generate --directory <dir>` writes full markdown docs; `asg docs view --command "apps view"` prints one. |
 
@@ -52,17 +52,17 @@ Every resource returns `id`; applications, and agents created with `--allow-user
 
 ## Gotchas when running unattended
 
-- **Pass both `-N -y`.** `-y` skips confirmations; `-N` (`--no-interactive`) stops input prompts, so a
-  missing flag fails instead of waiting on a TTY. `--format json|yaml` gives parseable output, `-v` the
-  detailed log when diagnosing.
+- **Pass `-N` on every command you run.** It stops input prompts, so a missing flag fails instead of
+  waiting on a TTY. It also skips confirmations: under `-N` a `delete` goes through without asking, so
+  get the user's OK before you run one. Add `-y` on mutating commands as the scripts do. `-v` gives
+  the detailed log when diagnosing.
 - **`filter` needs `-N`.** Without `-N` (or `--no-color`) every `filter` opens a full-screen terminal view,
   even with `--format json`, and an unattended run hangs. An empty result prints
   `Filter completed! 0 … found` and no JSON.
-- **Parsing JSON.** With `--format json|yaml`, stdout carries only the payload — progress and success
-  messages go to stderr — so `| jq` and `> file.json` work directly, with no prefix-stripping.
-  **Capture stdout only; never `2>&1` when you intend to parse** — merging the streams is what puts
-  spinner frames and warnings in front of the JSON. Note `--output <file>` may not be written when a
-  command errors, so don't rely on the file after a failure.
+- **Parsing JSON.** With `--format json|yaml` **and `-N`**, stdout carries only the payload —
+  progress and success messages go to stderr — so `| jq` and `> file.json` work directly. Without
+  `-N` the spinner writes to stdout and the JSON will not parse. **Capture stdout only; never `2>&1`
+  when you intend to parse.**
 - **`list` is deprecated on `apis`, `agents`, `roles`, `users` and `groups` — use `filter`.** `list`
   fetches everything and warns; `filter` is where narrowing lives and is what these resources are
   meant to be read with. `filter` returns 10 results unless `-c <n>` asks for more. Two filters worth knowing:
@@ -73,17 +73,18 @@ Every resource returns `id`; applications, and agents created with `--allow-user
 - **`--edit` uses `path=value`** (dot-separated path, `=` separator, `@file.json` for complex values):
   `asg apps update -i <id> --edit "name=NewName" -y`. Colons (`name:NewName`) are rejected.
 - **File-based update works unattended** — `asg <resource> update -i <id> --file <prepared.json> -N`
-  imports the prepared JSON directly (no export/edit/confirm cycle; the file is left untouched).
-  Interactive mode keeps the export → edit → confirm flow. These are full-replace updates, so edit a
-  copy of the current configuration rather than writing a partial file.
+  imports the prepared JSON directly and leaves the file untouched. **Always pass `-N` with
+  `--file`**: without it the CLI exports over that path first. These are full-replace updates, so edit
+  a copy of the current configuration rather than writing a partial file. `apis update` has no
+  `--file`.
 - **Where the file comes from differs by resource.** Applications are the only resource with a
   declarative representation on the server:
   - **Apps** — `asg apps export -i <id> --file app.json`. Its output is *not* `apps view` JSON: the
     keys and structure differ (`applicationName` vs `name`, `claimConfig` vs `claimConfiguration`,
     protocol config inlined rather than linked). Feeding `apps view` output to `apps update --file`
-    fails with `APP-65001`. Secrets are excluded from the export.
+    is refused by the CLI: "the file has no applicationName". Secrets are excluded from the export.
   - **Everything else** — there is no `export` command, because there is no export endpoint.
-    `asg <resource> view -i <id> --format json > config.json` already produces what
+    `asg <resource> view -i <id> -N --format json > config.json` already produces what
     `update --file` accepts.
   For a targeted app change, `--edit "path=@file.json"` is simpler than a whole round trip.
 - **`apps update --file` must match the file's application.** The server identifies the target by
@@ -129,9 +130,9 @@ Redirect URIs can also be set at creation with `--redirect-uri`, and the token f
 - **Redirect URIs are one array.** `apps protocol update --edit 'callbackURLs=[…]'` replaces the
   whole list, so adding a production URL later means restating the dev URL in the same command or
   silently losing it. Register every URL the user knows about at creation.
-- **CORS at the token exchange, not the redirect.** The CLI derives `allowedOrigins` from the
-  redirect URIs. If login fails on CORS after the redirect succeeded, check `allowedOrigins` in
-  `asg apps protocol view`, not just `callbackURLs`.
+- **CORS at the token exchange, not the redirect.** Only `--type spa` gets `allowedOrigins` from its
+  redirect URIs; other types are created with none. If login fails on CORS after the redirect
+  succeeded, check `allowedOrigins` in `asg apps protocol view`, not just `callbackURLs`.
 - **A test user needs a password now.** `asg users create` sets one only with
   `--password <value> --set-password`; without the flag Asgardeo emails the person a set-password
   link, which never arrives for a test address. Generate a strong password and pass it.
@@ -147,7 +148,7 @@ pattern is stable:
 https://console.asgardeo.io/t/<org>/app/<resource>/<id>
 ```
 
-`<org>` is what `asg status` shows; `<resource>` is `applications`, `users`, `groups`, `roles`, or
+`<org>` is the last segment of the Base URL in `asg status`; `<resource>` is `applications`, `users`, `groups`, `roles`, or
 `organizations`. An API resource adds its type before the ID:
 `…/app/api-resources/<type>/<id>`, with `<type>` the `type` field from `asg apis view`. Applications also take a tab fragment —
 `…/applications/<id>#tab=protocol` (also `general`, `user-attributes`, `sign-in-method`,
@@ -161,27 +162,28 @@ terminal — construct the link and let the user click it instead.
 
 ## When a command fails
 
-**Read the log first.** A generic `ERROR: Failed to …` has its real cause one line away in the CLI
-log (macOS `~/Library/Application Support/asgardeo-cli/logs/asgardeo-cli.log`; Linux typically
+**Read the error, then the log.** The terminal prints the innermost cause under `ERROR: Failed to …`;
+the full chain is in the CLI log (macOS `~/Library/Application Support/asgardeo-cli/logs/asgardeo-cli.log`; Linux typically
 `~/.config/asgardeo-cli/logs/`): the API error is recorded as-is (`code`, `message`, `description`,
 `traceId`; `detail` for SCIM). Re-running with `-v` shows the same inline. Keep the `traceId` — it's
 what Asgardeo support needs if you escalate.
 
 - **"Session has expired"** — the silent token refresh failed (refresh token expired or revoked).
   The one failure where the fix is a fresh `asg login` by the user.
-- **403 / "operation is not permitted"** — the signed-in user's role lacks that management
-  permission. **Re-login never fixes this** — an admin grants the role/permission, *then* the user
-  logs in again. (Rare: an HTML error page with no WSO2 branding in the log means an edge/WAF
-  block — Asgardeo support, with endpoint + `traceId`.)
+- **403 / "Forbidden request. You do not have permission to perform this action."** — the signed-in
+  user's role lacks that management permission. **Re-login never fixes this** — an admin grants the
+  role/permission, *then* the user logs in again.
+- **"server returned an HTML error page (N bytes, omitted)"** — the response was not from the API
+  (a proxy or edge block, or a wrong base URL). Check the Base URL in `asg status`; if it is right,
+  escalate to Asgardeo support with the endpoint and time.
 - **Backend can't read the token / scopes look empty** — the app is issuing **opaque** access
   tokens (the default). Decoding one as a JWT fails and every scope check comes back empty. Switch
   the app to JWT before debugging further: `authorize-app.md` step 5.
-- **Login fails at once with "Client credentials are invalid"** — CLI access is not enabled for
-  that organization (default-on for new organizations, opt-in for older ones; enabled once in the
-  Console), or the organization name is wrong.
+- **"CLI access is disabled for this organization"** — see `auth.md`; an administrator enables it
+  once in the Console, then the user logs in again.
 - **Login won't complete** — wrong org name (must be the root org name), or the browser sign-in
   wasn't finished; if no browser could open, the terminal printed the URL and code to use manually.
   Verify with `asg status` before retrying.
 
 Still stuck: fetch the specific docs page, not the tree — guides
-`https://wso2.com/identity-platform/docs/guides/`, APIs `https://wso2.com/identity-platform/docs/apis/`.
+`https://wso2.com/identity-platform/docs/guides.md`, APIs `https://wso2.com/identity-platform/docs/apis.md`.
