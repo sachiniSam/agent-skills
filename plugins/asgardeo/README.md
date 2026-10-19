@@ -6,7 +6,7 @@ Agent skill for Asgardeo.
 
 | Skill | Triggers |
 |-------|----------|
-| **asgardeo** | Add login, SSO, MFA or passwordless sign-in to an app; gate features or an API by role or scope; give an AI agent its own identity or act-on-behalf-of tokens; secure an MCP server; create and manage any Asgardeo resource through the `asg` CLI; debug a 403 or a login that won't complete |
+| **asgardeo** | Add login to an app; gate features or an API by role or scope; give an AI agent its own identity or act-on-behalf-of tokens; secure an MCP server; create and manage any Asgardeo resource through the `asg` CLI |
 
 ## Getting Started
 

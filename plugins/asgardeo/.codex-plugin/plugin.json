@@ -14,7 +14,7 @@
   "interface": {
     "displayName": "Asgardeo",
     "shortDescription": "Add login and access control to apps, agents, and MCP servers with Asgardeo.",
-    "longDescription": "Skill for Asgardeo through the asg CLI. Install the CLI and log in, register apps and wire the Asgardeo SDK for login, SSO, social login, MFA, or passwordless sign-in, gate features and APIs by role and scope, give AI agents their own identity or act-on-behalf-of tokens, secure MCP servers with OAuth, manage users, groups, roles, identity providers, branding, and organizations, and diagnose failed logins and 403s.",
+    "longDescription": "Skill for Asgardeo through the asg CLI. Register apps and wire the Asgardeo SDK for login, gate features and APIs by role and scope, give AI agents their own identity or act-on-behalf-of tokens, secure MCP servers with OAuth, and manage users, groups, roles, identity providers, branding, and organizations.",
     "developerName": "WSO2",
     "category": "Engineering",
     "capabilities": ["Interactive", "Read", "Write"],

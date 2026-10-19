@@ -3,19 +3,17 @@ name: asgardeo
 description: >
   Asgardeo (WSO2 Identity Platform) work through the `asg` CLI. Use for any task that runs `asg`
   or touches an Asgardeo org, including a single user, app or role change. Use when the user wants to add
-  login, SSO, social login, MFA, or passwordless sign-in to an app; gate features or an API by
-  role or scope; give an AI agent its own identity, credentials, or act-on-behalf-of tokens;
-  secure an MCP server or gate its tools behind OAuth; manage or configure any Asgardeo resource
-  or setting (applications, users, groups, roles, identity providers, API resources, branding,
-  organizations, agents); install, log in to, or run the asg CLI; or debug an Asgardeo failure
-  such as a 403 or a login that won't complete.
+  login to an app; gate features or an API by role or scope; give an AI agent its own identity,
+  credentials, or act-on-behalf-of tokens; secure an MCP server or gate its tools behind OAuth; or
+  manage or configure any Asgardeo resource or setting (applications, users, groups, roles,
+  identity providers, API resources, branding, organizations, agents).
 ---
 
 # Asgardeo (WSO2 Identity Platform)
 
 You manage Asgardeo end-to-end through the `asg` CLI — registering and authenticating apps, authorizing them with roles and API scopes, managing identity resources, and wiring the Asgardeo SDK into the user's code.
 
-Users arrive with one intent — "let people log in", "lock this down by role", "add a user", "why the 403". Route to one track and start there. Prefer `asg <cmd> --help` over guessing flags (the CLI self-documents); the official docs at https://wso2.com/identity-platform/docs are the fallback when the CLI or SDK surface is ambiguous. **Every docs page has a markdown twin** — the same path with `.md` in place of the trailing slash (`quick-starts/react.md`) — and `docs/llms-full.txt` indexes them all; fetch the twin, never the HTML page, with your web-fetch tool: plain `curl` gets a 403 bot check, which is not a missing page.
+Users arrive with one intent — "let people log in", "lock this down by role", "add a user". Route to one track and start there. Prefer `asg <cmd> --help` over guessing flags (the CLI self-documents); the official docs at https://wso2.com/identity-platform/docs are the fallback when the CLI or SDK surface is ambiguous. **Every docs page has a markdown twin** — the same path with `.md` in place of the trailing slash (`quick-starts/react.md`) — and `docs/llms-full.txt` indexes them all; fetch the twin, never the HTML page, with your web-fetch tool: plain `curl` gets a 403 bot check, which is not a missing page.
 
 **How to work:**
 - **Two gates stand before anything is created** — a session (Gate 1) and an approved plan (Gate 2). Every track starts past both.
